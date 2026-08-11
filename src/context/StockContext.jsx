@@ -21,22 +21,48 @@ export function StockProvider({ children }) {
   const fmtMoney = (n) => curSym() + (n || 0).toLocaleString();
   const today = () => new Date().toLocaleDateString('en-NG');
 
-  // ── Inventory actions — fill these in when you build the Inventory tab ──
+  // ── Inventory actions ──
   const addProduct = (product) => {
-    setInv((prev) => [...prev, { ...product, id: crypto.randomUUID() }]);
+    const id = crypto.randomUUID();
+    setInv((prev) => [...prev, { ...product, id }]);
+    if (product.qty > 0) logRestock(product.name, product.qty, product.unitInfo?.unit);
+    return id;
   };
   const updateProduct = (id, updates) => {
-    setInv((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
+    setInv((prev) => {
+      const existing = prev.find((item) => item.id === id);
+      if (existing && typeof updates.qty === 'number' && updates.qty > existing.qty) {
+        logRestock(existing.name, updates.qty - existing.qty, (updates.unitInfo || existing.unitInfo)?.unit);
+      }
+      return prev.map((item) => (item.id === id ? { ...item, ...updates } : item));
+    });
   };
   const deleteProduct = (id) => {
     setInv((prev) => prev.filter((item) => item.id !== id));
+  };
+  const restockProduct = (id, addQty) => {
+    const item = inv.find((i) => i.id === id);
+    if (!item || !addQty) return;
+    updateProduct(id, { qty: (item.qty || 0) + addQty });
+  };
+  const logRestock = (name, qty, unit) => {
+    setRestocks((prev) => [
+      {
+        name,
+        qty,
+        unit: unit || 'pcs',
+        time: new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' }),
+        date: today(),
+      },
+      ...prev,
+    ]);
   };
 
   // ── Sales / debtor / expense actions get added the same way as you port each tab ──
 
   const value = useMemo(
     () => ({
-      inv, setInv, addProduct, updateProduct, deleteProduct,
+      inv, setInv, addProduct, updateProduct, deleteProduct, restockProduct,
       sales, setSales,
       restocks, setRestocks,
       debtors, setDebtors,

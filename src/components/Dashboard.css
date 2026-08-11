@@ -1,0 +1,100 @@
+.dash { padding: 20px 16px 0; }
+
+.revenue-hero {
+  background: linear-gradient(135deg, #0E1A10 0%, #0A1520 100%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.revenue-hero::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,166,35,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.revenue-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--tx2);
+  margin-bottom: 4px;
+}
+
+.revenue-amount {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3rem;
+  letter-spacing: 2px;
+  line-height: 1;
+  color: var(--amber);
+}
+
+.revenue-sub {
+  font-size: 0.75rem;
+  color: var(--tx2);
+  margin-top: 6px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.revenue-sub span { display: flex; align-items: center; gap: 4px; }
+.revenue-sub b { color: var(--green); }
+.revenue-sub b.neg { color: var(--red); }
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stat-tile {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-tile::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 14px 14px 0 0;
+}
+
+.st-amber::after { background: var(--amber); }
+.st-green::after { background: var(--green); }
+.st-red::after   { background: var(--red); }
+
+.stat-tile-lbl {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--tx2);
+  margin-bottom: 6px;
+}
+
+.stat-tile-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.st-amber .stat-tile-val { color: var(--amber); }
+.st-green .stat-tile-val { color: var(--green); }
+.st-red   .stat-tile-val { color: var(--red); }

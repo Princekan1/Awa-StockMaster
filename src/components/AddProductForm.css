@@ -1,0 +1,108 @@
+.form-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 0 16px 16px;
+}
+
+.form-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  color: var(--amber);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fgrp { margin-bottom: 14px; }
+
+.flbl {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--tx2);
+  margin-bottom: 6px;
+}
+
+.finput {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--tx);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.finput:focus { border-color: var(--amber); }
+.finput::placeholder { color: var(--tx3); }
+
+.frow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field-err { font-size: 0.68rem; color: var(--red); margin-top: 3px; }
+
+.form-profit-preview {
+  background: var(--green-d);
+  border: 1px solid rgba(0,217,126,0.2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.78rem;
+  color: var(--green);
+  margin-bottom: 14px;
+}
+
+.form-profit-preview.loss {
+  background: var(--red-d);
+  border-color: rgba(255,69,96,0.2);
+  color: var(--red);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--amber);
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+
+.btn-primary:active { transform: scale(0.98); background: var(--amber2); }
+
+.btn-delete {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: var(--red);
+  border: 1px solid rgba(255,69,96,0.35);
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-delete:active { background: var(--red-d); }

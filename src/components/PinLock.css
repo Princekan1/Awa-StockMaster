@@ -1,0 +1,103 @@
+.pin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 32px;
+}
+
+.pin-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.2rem;
+  letter-spacing: 4px;
+  background: linear-gradient(90deg, var(--amber), var(--amber2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pin-sub {
+  font-size: 0.7rem;
+  color: var(--tx2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: -20px;
+}
+
+.pin-title {
+  font-size: 0.85rem;
+  color: var(--tx2);
+  text-align: center;
+  margin-top: 8px;
+}
+
+.pin-dots {
+  display: flex;
+  gap: 14px;
+  margin: 4px 0;
+}
+
+.pin-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  background: transparent;
+  transition: all 0.15s;
+}
+
+.pin-dot.filled { background: var(--amber); border-color: var(--amber); }
+.pin-dot.error  { background: var(--red);   border-color: var(--red); }
+
+.pin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 260px;
+}
+
+.pin-btn {
+  height: 64px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--tx);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  transition: all 0.12s;
+}
+
+.pin-btn:active {
+  background: var(--amber-d);
+  border-color: var(--amber);
+  transform: scale(0.94);
+}
+
+.pin-btn-sub {
+  font-size: 0.45rem;
+  letter-spacing: 1.5px;
+  color: var(--tx3);
+  text-transform: uppercase;
+}
+
+.pin-btn.del  { background: var(--red-d); color: var(--red); font-size: 1.1rem; }
+.pin-btn.zero { grid-column: 2; }
+
+.pin-forgot {
+  font-size: 0.75rem;
+  color: var(--tx3);
+  cursor: pointer;
+  text-decoration: underline;
+  text-align: center;
+}
