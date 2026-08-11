@@ -1,0 +1,57 @@
+:root {
+  --bg:      #080B10;
+  --surface: #0E1219;
+  --card:    #131920;
+  --card2:   #1A2230;
+  --border:  #1F2D3D;
+  --border2: #263545;
+  --amber:   #F5A623;
+  --amber2:  #FFB84D;
+  --amber-d: rgba(245,166,35,0.12);
+  --green:   #00D97E;
+  --green-d: rgba(0,217,126,0.10);
+  --red:     #FF4560;
+  --red-d:   rgba(255,69,96,0.10);
+  --blue:    #3B82F6;
+  --blue-d:  rgba(59,130,246,0.10);
+  --purple:  #A855F7;
+  --purple-d:rgba(168,85,247,0.10);
+  --tx:      #E8EFF8;
+  --tx2:     #7D8FA3;
+  --tx3:     #3D4F63;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--tx);
+  min-height: 100vh;
+  padding-bottom: 110px;
+  background-image:
+    radial-gradient(ellipse 70% 40% at 80% -10%, rgba(245,166,35,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 30% at -10% 80%, rgba(0,217,126,0.04) 0%, transparent 60%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Shared type scale used across components — extend as you port each tab */
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.brand-font {
+  font-family: 'Bebas Neue', sans-serif;
+}
