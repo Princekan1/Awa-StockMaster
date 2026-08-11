@@ -1,0 +1,44 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.modal-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px 24px 0 0;
+  padding: 28px 24px 36px;
+  width: 100%;
+  max-width: 480px;
+  animation: slideUp 0.25s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 2px; color: var(--tx); margin-bottom: 6px; }
+.modal-sub   { font-size: 0.85rem; color: var(--tx2); margin-bottom: 20px; }
+
+.modal-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 4px; }
+.btn-cancel {
+  padding: 14px; border-radius: 13px;
+  background: var(--card2); border: 1px solid var(--border2);
+  color: var(--tx2); font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem; font-weight: 600; cursor: pointer;
+}
+.btn-confirm {
+  padding: 14px; border-radius: 13px;
+  background: var(--green); color: #000; border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem; letter-spacing: 2px; cursor: pointer; transition: all 0.15s;
+}
+.btn-confirm:active { transform: scale(0.97); opacity: 0.9; }
+.btn-confirm.warn { background: var(--red); color: #fff; }

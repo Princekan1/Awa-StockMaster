@@ -1,12 +1,16 @@
 import { useState, useMemo } from 'react';
 import { useStock } from '../context/StockContext';
 import { getEmoji, pluralize } from '../utils/format';
+import SellModal from './SellModal';
+import Receipt from './Receipt';
 import './InventoryList.css';
 
 export default function InventoryList({ onEdit }) {
-  const { inv, fmtMoney, restockProduct } = useStock();
+  const { inv, fmtMoney, restockProduct, confirmSale } = useStock();
   const [term, setTerm] = useState('');
   const [activeCat, setActiveCat] = useState('All');
+  const [sellingItem, setSellingItem] = useState(null);
+  const [receiptSale, setReceiptSale] = useState(null);
 
   const categories = useMemo(
     () => ['All', ...new Set(inv.map((i) => i.cat).filter(Boolean))],
@@ -38,6 +42,16 @@ export default function InventoryList({ onEdit }) {
     const addQty = parseFloat(raw);
     if (isNaN(addQty) || addQty <= 0) return;
     restockProduct(item.id, addQty);
+  };
+
+  const handleSold = ({ qty, unitMode, payMethod }) => {
+    const result = confirmSale(sellingItem, { qty, unitMode, payMethod });
+    if (result.error) {
+      window.alert(result.error);
+      return;
+    }
+    setSellingItem(null);
+    setReceiptSale(result.sale);
   };
 
   return (
@@ -113,7 +127,12 @@ export default function InventoryList({ onEdit }) {
                   <button className="btn-restock" title="Restock" onClick={() => handleRestock(item)}>
                     <i className="fa-solid fa-plus" />
                   </button>
-                  <button className="btn-sell" disabled title="Coming with the Sales tab" style={{ opacity: 0.4 }}>
+                  <button
+                    className="btn-sell"
+                    disabled={item.qty <= 0}
+                    style={item.qty <= 0 ? { opacity: 0.4 } : undefined}
+                    onClick={() => setSellingItem(item)}
+                  >
                     SELL
                   </button>
                 </div>
@@ -122,6 +141,11 @@ export default function InventoryList({ onEdit }) {
           })
         )}
       </div>
+
+      {sellingItem && (
+        <SellModal product={sellingItem} onClose={() => setSellingItem(null)} onSold={handleSold} />
+      )}
+      {receiptSale && <Receipt sale={receiptSale} onClose={() => setReceiptSale(null)} />}
     </div>
   );
 }
