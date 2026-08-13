@@ -104,6 +104,11 @@ export default function PinLock({ onUnlock }) {
     }
   };
 
+  const skipPin = () => {
+    localStorage.setItem('awa_pin_disabled', 'true');
+    onUnlock();
+  };
+
   return (
     <div className="pin-overlay">
       <div className="pin-logo">StockMaster</div>
@@ -138,6 +143,10 @@ export default function PinLock({ onUnlock }) {
       <div className="pin-forgot" onClick={forgotPin}>
         Forgot PIN? Reset app data
       </div>
+
+      <button className="pin-skip" onClick={skipPin}>
+        Continue without PIN
+      </button>
     </div>
   );
 }

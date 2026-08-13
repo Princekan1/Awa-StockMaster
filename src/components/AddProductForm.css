@@ -2,107 +2,148 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 20px;
-  margin: 0 16px 16px;
+  padding: 24px 20px;
+  margin: 0 16px 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
 }
 
 .form-title {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   letter-spacing: 2px;
   color: var(--amber);
-  margin-bottom: 18px;
+  margin-bottom: 22px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.fgrp { margin-bottom: 14px; }
+.form-title i {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.fgrp {
+  margin-bottom: 16px;
+}
 
 .flbl {
   display: block;
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--tx2);
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .finput {
   width: 100%;
-  padding: 12px 14px;
+  padding: 13px 15px;
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
   color: var(--tx);
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
-.finput:focus { border-color: var(--amber); }
-.finput::placeholder { color: var(--tx3); }
+.finput:focus {
+  border-color: var(--amber);
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--amber-d);
+}
+
+.finput::placeholder {
+  color: var(--tx3);
+}
 
 .frow {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
 }
 
-.field-err { font-size: 0.68rem; color: var(--red); margin-top: 3px; }
+.field-err {
+  font-size: 0.72rem;
+  color: var(--red);
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 
+/* Profit preview */
 .form-profit-preview {
   background: var(--green-d);
-  border: 1px solid rgba(0,217,126,0.2);
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 0.78rem;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.85rem;
   color: var(--green);
-  margin-bottom: 14px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
 }
 
 .form-profit-preview.loss {
   background: var(--red-d);
-  border-color: rgba(255,69,96,0.2);
+  border-color: rgba(239, 68, 68, 0.25);
   color: var(--red);
 }
 
+.form-profit-preview i {
+  font-size: 1rem;
+}
+
+/* Primary button */
 .btn-primary {
   width: 100%;
-  padding: 14px;
+  padding: 15px;
   background: var(--amber);
-  color: #000;
+  color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: 13px;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   letter-spacing: 2px;
   cursor: pointer;
   transition: all 0.2s;
-  margin-top: 4px;
+  margin-top: 6px;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);
 }
 
-.btn-primary:active { transform: scale(0.98); background: var(--amber2); }
+.btn-primary:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+  background: var(--amber2);
+}
 
+/* Delete button */
 .btn-delete {
   width: 100%;
-  padding: 12px;
+  padding: 13px;
   background: transparent;
   color: var(--red);
-  border: 1px solid rgba(255,69,96,0.35);
+  border: 1.5px solid rgba(239, 68, 68, 0.35);
   border-radius: 12px;
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  margin-top: 10px;
+  margin-top: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
 }
 
-.btn-delete:active { background: var(--red-d); }
+.btn-delete:active {
+  background: var(--red-d);
+  border-color: var(--red);
+}

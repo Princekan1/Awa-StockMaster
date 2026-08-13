@@ -1,0 +1,166 @@
+.settings-page {
+  padding: 0 16px 40px;
+}
+
+.settings-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+}
+
+.settings-card.danger {
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.settings-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 1.5px;
+  color: var(--tx);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-title i {
+  color: var(--amber);
+  font-size: 1rem;
+}
+
+.danger-title i {
+  color: var(--red);
+}
+
+.fgrp {
+  margin-bottom: 14px;
+}
+
+.flbl {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--tx2);
+  margin-bottom: 6px;
+}
+
+.finput {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 11px;
+  color: var(--tx);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.finput:focus {
+  border-color: var(--amber);
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--amber-d);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--amber);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 4px;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Toggle row */
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-row-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--tx);
+}
+
+.settings-row-sub {
+  font-size: 0.78rem;
+  color: var(--tx2);
+  margin-top: 2px;
+}
+
+.toggle-btn {
+  min-width: 64px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border2);
+  background: var(--card2);
+  color: var(--tx2);
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn.on {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+/* Danger zone */
+.danger-text {
+  font-size: 0.85rem;
+  color: var(--tx2);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.btn-danger {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  color: var(--red);
+  border: 1.5px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-danger:active {
+  background: var(--red-d);
+}
+
+.settings-footer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--tx3);
+  margin-top: 28px;
+  letter-spacing: 0.5px;
+}

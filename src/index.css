@@ -1,24 +1,33 @@
 :root {
-  --bg:      #080B10;
-  --surface: #0E1219;
-  --card:    #131920;
-  --card2:   #1A2230;
-  --border:  #1F2D3D;
-  --border2: #263545;
-  --amber:   #F5A623;
-  --amber2:  #FFB84D;
-  --amber-d: rgba(245,166,35,0.12);
-  --green:   #00D97E;
-  --green-d: rgba(0,217,126,0.10);
-  --red:     #FF4560;
-  --red-d:   rgba(255,69,96,0.10);
-  --blue:    #3B82F6;
-  --blue-d:  rgba(59,130,246,0.10);
-  --purple:  #A855F7;
-  --purple-d:rgba(168,85,247,0.10);
-  --tx:      #E8EFF8;
-  --tx2:     #7D8FA3;
-  --tx3:     #3D4F63;
+  /* Professional bright palette */
+  --bg:        #F5F7FB;          /* soft cool white */
+  --surface:   #FFFFFF;
+  --card:      #FFFFFF;
+  --card2:     #F0F3F9;
+  --border:    #E2E8F0;
+  --border2:   #CBD5E1;
+
+  /* Accents – richer & more refined */
+  --amber:     #F97316;          /* rich orange */
+  --amber2:    #FB923C;
+  --amber-d:   rgba(249, 115, 22, 0.12);
+
+  --green:     #10B981;          /* emerald */
+  --green-d:   rgba(16, 185, 129, 0.12);
+
+  --red:       #EF4444;
+  --red-d:     rgba(239, 68, 68, 0.12);
+
+  --blue:      #3B82F6;
+  --blue-d:    rgba(59, 130, 246, 0.12);
+
+  --purple:    #8B5CF6;
+  --purple-d:  rgba(139, 92, 246, 0.12);
+
+  /* Text – high contrast */
+  --tx:        #0F172A;          /* deep slate */
+  --tx2:       #475569;
+  --tx3:       #94A3B8;
 }
 
 *, *::before, *::after {
@@ -39,15 +48,15 @@ body {
   min-height: 100vh;
   padding-bottom: 110px;
   background-image:
-    radial-gradient(ellipse 70% 40% at 80% -10%, rgba(245,166,35,0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 30% at -10% 80%, rgba(0,217,126,0.04) 0%, transparent 60%);
+    radial-gradient(ellipse 80% 50% at 90% -20%, rgba(59, 130, 246, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at -15% 90%, rgba(16, 185, 129, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 30% at 50% 110%, rgba(249, 115, 22, 0.06) 0%, transparent 50%);
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* Shared type scale used across components — extend as you port each tab */
 .mono {
   font-family: 'JetBrains Mono', monospace;
 }

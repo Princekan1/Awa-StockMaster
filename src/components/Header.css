@@ -2,14 +2,14 @@
   position: sticky;
   top: 0;
   z-index: 200;
-  background: rgba(8, 11, 16, 0.93);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
   padding: 0 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 58px;
+  height: 56px;
+  box-shadow: 0 2px 12px rgba(41, 121, 255, 0.06);
 }
 
 .hdr-logo {
@@ -18,7 +18,9 @@
   letter-spacing: 3px;
   background: linear-gradient(90deg, var(--amber), var(--amber2));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .hdr-sub {
@@ -27,28 +29,4 @@
   letter-spacing: 2px;
   text-transform: uppercase;
   margin-top: -4px;
-}
-
-.hdr-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.hdr-badge {
-  background: var(--amber-d);
-  border: 1px solid rgba(245, 166, 35, 0.25);
-  color: var(--amber);
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 20px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.hdr-ver {
-  font-size: 0.55rem;
-  color: var(--tx3);
-  letter-spacing: 1px;
 }

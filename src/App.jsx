@@ -7,9 +7,13 @@ import NavTabs from './components/NavTabs';
 import InventoryList from './components/InventoryList';
 import AddProductForm from './components/AddProductForm';
 import './App.css';
+import Settings from './components/Settings';
 
 function App() {
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  // Respect "Continue without PIN" preference
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    return localStorage.getItem('awa_pin_disabled') === 'true';
+  });
   const [activeTab, setActiveTab] = useState('inventory');
   const [editingItem, setEditingItem] = useState(null);
   const { inv } = useStock();
@@ -47,7 +51,7 @@ function App() {
         {activeTab === 'reports' && <p>Reports tab — coming next.</p>}
         {activeTab === 'debtors' && <p>Debtors tab — coming next.</p>}
         {activeTab === 'expenses' && <p>Expenses tab — coming next.</p>}
-        {activeTab === 'more' && <p>More / settings tab — coming next.</p>}
+        {activeTab === 'more' && <Settings />}
       </div>
     </>
   );

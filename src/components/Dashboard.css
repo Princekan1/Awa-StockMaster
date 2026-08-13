@@ -1,13 +1,14 @@
 .dash { padding: 20px 16px 0; }
 
 .revenue-hero {
-  background: linear-gradient(135deg, #0E1A10 0%, #0A1520 100%);
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0F7FF 100%);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 24px;
   margin-bottom: 12px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(41, 121, 255, 0.08);
 }
 
 .revenue-hero::before {
@@ -18,7 +19,7 @@
   width: 180px;
   height: 180px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(245,166,35,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -66,13 +67,14 @@
   padding: 14px 12px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 10px rgba(41, 121, 255, 0.05);
 }
 
 .stat-tile::after {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 2px;
+  height: 3px;
   border-radius: 14px 14px 0 0;
 }
 

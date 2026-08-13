@@ -72,10 +72,11 @@
   transition: border-color 0.2s;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 10px rgba(41, 121, 255, 0.05);
 }
 .item-card.low {
-  border-color: rgba(255,69,96,0.35);
-  background: linear-gradient(135deg, var(--card) 0%, rgba(255,69,96,0.04) 100%);
+  border-color: rgba(255, 23, 68, 0.35);
+  background: linear-gradient(135deg, var(--card) 0%, rgba(255, 23, 68, 0.04) 100%);
 }
 .item-card.low::before {
   content: '';
@@ -87,11 +88,11 @@
 .item-icon {
   width: 42px; height: 42px; border-radius: 12px;
   background: var(--amber-d);
-  border: 1px solid rgba(245,166,35,0.2);
+  border: 1px solid rgba(255, 107, 53, 0.25);
   display: flex; align-items: center; justify-content: center;
   font-size: 1.1rem; flex-shrink: 0;
 }
-.item-icon.low-icon { background: var(--red-d); border-color: rgba(255,69,96,0.2); }
+.item-icon.low-icon { background: var(--red-d); border-color: rgba(255, 23, 68, 0.2); }
 .item-body { flex: 1; min-width: 0; }
 .item-name {
   font-size: 0.9rem; font-weight: 600; color: var(--tx);
@@ -99,7 +100,7 @@
 }
 .item-cat-badge {
   font-size: 0.58rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
-  background: var(--blue-d); color: var(--blue); border: 1px solid rgba(59,130,246,0.2);
+  background: var(--blue-d); color: var(--blue); border: 1px solid rgba(41, 121, 255, 0.2);
   padding: 1px 6px; border-radius: 20px; margin-right: 4px;
 }
 .item-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -109,32 +110,77 @@
 .margin-pill {
   font-size: 0.6rem; font-weight: 700; letter-spacing: 0.5px;
   background: var(--green-d); color: var(--green);
-  border: 1px solid rgba(0,217,126,0.2);
+  border: 1px solid rgba(0, 200, 83, 0.2);
   padding: 2px 7px; border-radius: 20px;
 }
-.margin-pill.neg { background: var(--red-d); color: var(--red); border-color: rgba(255,69,96,0.2); }
-.item-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
-.btn-sell {
-  background: var(--green); color: #000;
-  border: none; border-radius: 10px;
-  font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.75rem;
-  padding: 8px 14px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px;
+.margin-pill.neg { background: var(--red-d); color: var(--red); border-color: rgba(255, 23, 68, 0.2); }
+
+/* ===== Improved action buttons ===== */
+.item-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
 }
-.btn-sell:active { transform: scale(0.95); background: #00b86a; }
-.btn-edit {
-  background: var(--card2); color: var(--tx2);
-  border: 1px solid var(--border2); border-radius: 10px;
-  width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 0.85rem; transition: all 0.15s; flex-shrink: 0;
-}
-.btn-edit:active { background: var(--border); }
+
+.btn-edit,
 .btn-restock {
-  background: var(--amber-d); color: var(--amber);
-  border: 1px solid rgba(245,166,35,0.3); border-radius: 8px;
-  font-size: 0.7rem; font-weight: 700; padding: 5px 9px;
-  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+  border: 1px solid var(--border2);
+  background: var(--card2);
+  color: var(--tx2);
 }
-.btn-restock:active { background: var(--amber); color: #000; }
+
+.btn-edit:active,
+.btn-restock:active {
+  transform: scale(0.93);
+}
+
+.btn-edit:hover {
+  background: var(--blue-d);
+  color: var(--blue);
+  border-color: rgba(41, 121, 255, 0.3);
+}
+
+.btn-restock:hover {
+  background: var(--amber-d);
+  color: var(--amber);
+  border-color: rgba(255, 107, 53, 0.3);
+}
+
+.btn-sell {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.4px;
+  box-shadow: 0 2px 8px rgba(0, 200, 83, 0.25);
+}
+
+.btn-sell:active {
+  transform: scale(0.95);
+  box-shadow: none;
+}
+
+.btn-sell:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
 
 .empty-state { text-align: center; padding: 50px 20px; color: var(--tx3); }
 .empty-icon { font-size: 3rem; margin-bottom: 12px; }

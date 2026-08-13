@@ -69,7 +69,7 @@ export default function SellModal({ product, onClose, onSold }) {
         </div>
 
         {belowCost && (
-          <div className="cost-warning show">
+          <div className="cost-warning">
             <i className="fa-solid fa-triangle-exclamation" />
             Selling {fmtMoney(product.cost - product.price)} below cost — you'll make a loss!
           </div>
@@ -102,8 +102,9 @@ export default function SellModal({ product, onClose, onSold }) {
           />
           <button className="qty-btn" onClick={() => adjustQty(1)}>+</button>
         </div>
+
         <div className="qty-unit-hint">
-          {qty > 1 || hasPieceOption ? `Total: ${fmtMoney(total)}` : ''}
+          {qty > 0 ? `Total: ${fmtMoney(total)}` : ''}
         </div>
 
         <div className="pay-method-row">
@@ -120,8 +121,10 @@ export default function SellModal({ product, onClose, onSold }) {
         </div>
 
         {payMethod === 'Cash' && (
-          <div className="change-calc show">
-            <div className="change-calc-label"><i className="fa-solid fa-coins" /> Change Calculator</div>
+          <div className="change-calc">
+            <div className="change-calc-label">
+              <i className="fa-solid fa-coins" /> Change Calculator
+            </div>
             <input
               className="finput"
               type="number"
@@ -139,7 +142,10 @@ export default function SellModal({ product, onClose, onSold }) {
 
         <div className="modal-actions">
           <button className="btn-cancel" onClick={onClose}>Cancel</button>
-          <button className={'btn-confirm' + (belowCost ? ' warn' : '')} onClick={handleConfirm}>
+          <button
+            className={'btn-confirm' + (belowCost ? ' warn' : '')}
+            onClick={handleConfirm}
+          >
             CONFIRM SALE
           </button>
         </div>

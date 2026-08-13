@@ -89,43 +89,95 @@ export default function AddProductForm({ editingItem, onDone }) {
 
   return (
     <form className="form-card" onSubmit={handleSubmit}>
-      <div className="form-title">{editingItem ? 'EDIT PRODUCT' : 'ADD PRODUCT'}</div>
+      <div className="form-title">
+        <i className={`fa-solid ${editingItem ? 'fa-pen-to-square' : 'fa-plus'}`} />
+        {editingItem ? 'EDIT PRODUCT' : 'ADD PRODUCT'}
+      </div>
 
       <div className="fgrp">
         <label className="flbl">Product Name *</label>
-        <input className="finput" placeholder="e.g. Peak Milk Tin" value={form.name} onChange={setField('name')} />
-        {errors.name && <div className="field-err show">{errors.name}</div>}
+        <input
+          className="finput"
+          placeholder="e.g. Peak Milk Tin"
+          value={form.name}
+          onChange={setField('name')}
+        />
+        {errors.name && (
+          <div className="field-err">
+            <i className="fa-solid fa-circle-exclamation" /> {errors.name}
+          </div>
+        )}
       </div>
 
       <div className="frow">
         <div className="fgrp">
           <label className="flbl">SKU / Barcode</label>
-          <input className="finput" placeholder="Optional" value={form.sku} onChange={setField('sku')} />
+          <input
+            className="finput"
+            placeholder="Optional"
+            value={form.sku}
+            onChange={setField('sku')}
+          />
         </div>
         <div className="fgrp">
           <label className="flbl">Category</label>
-          <input className="finput" placeholder="e.g. Beverages" value={form.cat} onChange={setField('cat')} />
+          <input
+            className="finput"
+            placeholder="e.g. Beverages"
+            value={form.cat}
+            onChange={setField('cat')}
+          />
         </div>
       </div>
 
       <div className="frow">
         <div className="fgrp">
           <label className="flbl">Cost Price ({curSym()}) *</label>
-          <input className="finput" type="number" placeholder="0" value={form.cost} onChange={setField('cost')} />
-          {errors.cost && <div className="field-err show">{errors.cost}</div>}
+          <input
+            className="finput"
+            type="number"
+            placeholder="0"
+            value={form.cost}
+            onChange={setField('cost')}
+          />
+          {errors.cost && (
+            <div className="field-err">
+              <i className="fa-solid fa-circle-exclamation" /> {errors.cost}
+            </div>
+          )}
         </div>
         <div className="fgrp">
           <label className="flbl">Selling Price ({curSym()}) *</label>
-          <input className="finput" type="number" placeholder="0" value={form.price} onChange={setField('price')} />
-          {errors.price && <div className="field-err show">{errors.price}</div>}
+          <input
+            className="finput"
+            type="number"
+            placeholder="0"
+            value={form.price}
+            onChange={setField('price')}
+          />
+          {errors.price && (
+            <div className="field-err">
+              <i className="fa-solid fa-circle-exclamation" /> {errors.price}
+            </div>
+          )}
         </div>
       </div>
 
       <div className="frow">
         <div className="fgrp">
           <label className="flbl">Quantity in Stock</label>
-          <input className="finput" type="number" placeholder="0" value={form.qty} onChange={setField('qty')} />
-          {errors.qty && <div className="field-err show">{errors.qty}</div>}
+          <input
+            className="finput"
+            type="number"
+            placeholder="0"
+            value={form.qty}
+            onChange={setField('qty')}
+          />
+          {errors.qty && (
+            <div className="field-err">
+              <i className="fa-solid fa-circle-exclamation" /> {errors.qty}
+            </div>
+          )}
         </div>
         <div className="fgrp">
           <label className="flbl">Low Stock Alert</label>
@@ -140,7 +192,8 @@ export default function AddProductForm({ editingItem, onDone }) {
       </div>
 
       {profitPreview && (
-        <div className={'form-profit-preview show' + (profitPreview.profit < 0 ? ' loss' : '')}>
+        <div className={'form-profit-preview' + (profitPreview.profit < 0 ? ' loss' : '')}>
+          <i className={`fa-solid ${profitPreview.profit < 0 ? 'fa-triangle-exclamation' : 'fa-chart-line'}`} />
           Profit per unit: {curSym()}{profitPreview.profit.toLocaleString()} ({profitPreview.margin}% margin)
         </div>
       )}

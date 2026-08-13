@@ -13,11 +13,13 @@
 
 .pin-logo {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   letter-spacing: 4px;
   background: linear-gradient(90deg, var(--amber), var(--amber2));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .pin-sub {
@@ -29,7 +31,7 @@
 }
 
 .pin-title {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--tx2);
   text-align: center;
   margin-top: 8px;
@@ -56,32 +58,34 @@
 .pin-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  width: 260px;
+  gap: 12px;
+  width: 280px;
 }
 
 .pin-btn {
-  height: 64px;
-  border-radius: 14px;
+  height: 68px;
+  border-radius: 16px;
   background: var(--card);
   border: 1px solid var(--border);
   color: var(--tx);
   font-family: 'DM Sans', sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 2px;
   transition: all 0.12s;
+  box-shadow: 0 2px 8px rgba(41, 121, 255, 0.06);
 }
 
 .pin-btn:active {
   background: var(--amber-d);
   border-color: var(--amber);
   transform: scale(0.94);
+  box-shadow: none;
 }
 
 .pin-btn-sub {
@@ -91,13 +95,39 @@
   text-transform: uppercase;
 }
 
-.pin-btn.del  { background: var(--red-d); color: var(--red); font-size: 1.1rem; }
+.pin-btn.del {
+  background: var(--red-d);
+  color: var(--red);
+  font-size: 1.15rem;
+  border-color: rgba(255, 23, 68, 0.25);
+}
+
 .pin-btn.zero { grid-column: 2; }
 
 .pin-forgot {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--tx3);
   cursor: pointer;
   text-decoration: underline;
   text-align: center;
+  margin-top: 8px;
+}
+
+.pin-skip {
+  margin-top: 12px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--tx2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pin-skip:active {
+  background: var(--card2);
+  color: var(--tx);
 }
