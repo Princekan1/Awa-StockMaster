@@ -225,18 +225,17 @@ export default function Login() {
               </div>
             </div>
 
-            {mode === 'signIn' && (
-              <div className="flex justify-end -mt-1">
-                <button
-                  type="button"
-                  onClick={() => void onForgotPassword()}
-                  disabled={busy !== null}
-                  className="text-xs font-semibold text-[var(--color-brand)] hover:underline disabled:opacity-50"
-                >
-                  {busy === 'reset' ? 'Sending…' : 'Forgot password?'}
-                </button>
-              </div>
-            )}
+            <div className="-mt-1 flex justify-center sm:justify-end">
+              <button
+                type="button"
+                onClick={() => void onForgotPassword()}
+                disabled={busy !== null}
+                aria-label="Reset your password"
+                className="min-h-11 px-3 text-sm font-bold text-[var(--color-brand)] hover:underline disabled:opacity-50"
+              >
+                {busy === 'reset' ? 'Sending reset email…' : 'Forgot password?'}
+              </button>
+            </div>
 
             {message && (
               <p className="text-sm text-emerald-700 font-medium">{message}</p>

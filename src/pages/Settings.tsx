@@ -54,6 +54,7 @@ export default function Settings() {
   const [message, setMessage] = useState('');
   const [exporting, setExporting] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => setBusiness({ shopName: settings?.shopName ?? '', defaultMinimumStock: String(settings?.defaultMinimumStock ?? 5), expiryWarningDays: String(settings?.expiryWarningDays ?? 30) }), [settings]);
 
@@ -87,7 +88,17 @@ export default function Settings() {
     }
   }
 
-  async function handleLogout() { await logout(); window.location.assign('/login'); }
+  async function handleLogout() {
+    if (loggingOut) return;
+    if (!window.confirm('Log out of Awa Stock on this device?')) return;
+    setLoggingOut(true);
+    try {
+      await logout();
+      window.location.assign('/login');
+    } finally {
+      setLoggingOut(false);
+    }
+  }
 
   async function handleExport() {
     setExporting(true);
@@ -131,6 +142,31 @@ export default function Settings() {
   return (
     <div className="max-w-3xl">
       <Header title="Settings" subtitle="Manage your shop, staff, suppliers and synchronization" />
+
+      {/* Keep account controls at the top of Settings so logout is always easy to find on phones. */}
+      <section className="ui-card p-4 sm:p-5 mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <LogOut size={18} className="text-[var(--color-brand)]" aria-hidden="true" />
+              <h2 className="font-display font-bold">My account</h2>
+            </div>
+            <p className="text-sm truncate">{userName}</p>
+            <p className="text-xs text-[var(--color-ink-muted)] truncate">{email}</p>
+            <p className="text-xs text-[var(--color-ink-muted)] mt-1">Role: {role === 'owner' ? 'Owner' : 'Staff / Cashier'}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            disabled={loggingOut}
+            className="w-full sm:w-auto min-h-12 inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-3 text-sm font-bold text-red-700 transition hover:bg-red-100 disabled:opacity-60"
+          >
+            <LogOut size={17} />
+            {loggingOut ? 'Logging out…' : 'Log out'}
+          </button>
+        </div>
+      </section>
+
       <div className="flex gap-1 overflow-x-auto border-b mb-5" style={{ borderColor: 'var(--color-line)' }}>
         {tabs.map((t) => { const Icon = t.icon; return <button key={t.key} type="button" onClick={() => setTab(t.key)} className={`px-3 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 ${tab === t.key ? 'text-[var(--color-brand)] border-[var(--color-brand)]' : 'text-[var(--color-ink-muted)] border-transparent'}`}><Icon size={14} className="inline mr-1.5"/>{t.label}</button>; })}
       </div>
@@ -146,20 +182,6 @@ export default function Settings() {
       {tab === 'sync' && <section className="ui-card p-5"><div className="flex items-center gap-3 mb-5"><ShieldCheck size={20}/><div><h2 className="font-display font-bold">Cloud synchronization</h2><p className="text-xs text-[var(--color-ink-muted)]">Internet connection and cloud synchronization are tracked separately.</p></div></div><div className="space-y-3 text-sm"><Row label="Internet" value={isOnline ? 'Online' : 'Offline'}/><Row label="Cloud" value={syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'error' ? 'Sync failed' : isOnline ? 'Waiting to sync' : 'Waiting for internet'}/><Row label="Changes waiting to sync" value={String(pendingSyncCount)}/><Row label="Last successful sync" value={lastSyncedAt ? new Date(lastSyncedAt).toLocaleString('en-NG') : 'Not synced yet'}/>{syncError && <p className="rounded-lg p-3 text-xs" style={{ background: 'var(--color-red-soft)', color: 'var(--color-red)' }}>{syncError}</p>}<button type="button" disabled={!isOnline || syncStatus === 'syncing'} onClick={() => void syncCloud()} className="btn-primary"><RefreshCw size={15} className={syncStatus === 'syncing' ? 'animate-spin' : ''}/>{syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'error' ? 'Retry sync' : 'Sync now'}</button></div></section>}
 
       {tab === 'data' && role === 'owner' && <section className="ui-card p-5"><div className="flex items-center gap-3 mb-5"><Download size={20}/><div><h2 className="font-display font-bold">Backup & data</h2><p className="text-xs text-[var(--color-ink-muted)]">Create a verified backup or restore a previous backup for this shop.</p></div></div><div className="space-y-4 text-sm"><div className="rounded-lg p-3" style={{ background: 'var(--color-blue-soft)', color: 'var(--color-ink)' }}><p className="font-semibold mb-1">Backup contents</p><p className="text-xs text-[var(--color-ink-muted)]">Products, sales, stock movements, suppliers, staff records and business settings.</p></div><div className="rounded-lg bg-slate-50 px-3 py-2.5"><Row label="Products" value={String(products.length)}/><Row label="Sales" value={String(sales.length)}/><Row label="Stock movements" value={String(movements.length)}/><Row label="Last sync" value={lastSyncedAt ? new Date(lastSyncedAt).toLocaleString('en-NG') : 'Not synced yet'}/></div><button type="button" disabled={exporting || !shopId} onClick={() => void handleExport()} className="btn-primary"><Download size={15}/>{exporting ? 'Preparing backup…' : 'Download verified backup'}</button><label className={`btn-secondary justify-center ${restoring ? 'opacity-50 pointer-events-none' : ''}`}><Upload size={15}/>{restoring ? 'Restoring…' : 'Restore backup'}<input type="file" accept="application/json,.json" className="sr-only" disabled={restoring || !isOnline} onChange={(e) => { const file = e.target.files?.[0]; if (file) void handleRestore(file); e.currentTarget.value = ''; }}/></label><p className="text-xs text-[var(--color-ink-muted)]">Restore requires internet access and replaces the current cloud data for this shop. Always keep a separate backup before restoring.</p></div></section>}
-
-      <section className="ui-card p-5 mt-5">
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h2 className="font-display font-bold mb-1">My account</h2>
-            <p className="text-sm truncate">{userName}</p>
-            <p className="text-xs text-[var(--color-ink-muted)] truncate">{email}</p>
-            <p className="text-xs text-[var(--color-ink-muted)] mt-2">Role: {role === 'owner' ? 'Owner' : 'Staff / Cashier'}</p>
-          </div>
-          <button type="button" onClick={() => void handleLogout()} className="btn-secondary shrink-0 text-xs">
-            <LogOut size={15} /> Log out
-          </button>
-        </div>
-      </section>
 
 
       <Modal open={supplierOpen} onClose={() => setSupplierOpen(false)} title="Add supplier"><form onSubmit={(e) => { e.preventDefault(); if (!supplier.name.trim()) return; addSupplier({ name: supplier.name.trim(), phone: supplier.phone.trim(), leadTimeDays: Math.max(0, Number(supplier.leadTimeDays) || 0) }); setSupplier({ name: '', phone: '', leadTimeDays: '2' }); setSupplierOpen(false); }} className="space-y-3"><label><span className="label">Supplier name</span><input className="field" value={supplier.name} onChange={(e) => setSupplier({ ...supplier, name: e.target.value })}/></label><label><span className="label">Phone</span><input className="field" value={supplier.phone} onChange={(e) => setSupplier({ ...supplier, phone: e.target.value })}/></label><label><span className="label">Lead time (days)</span><input type="number" min="0" className="field" value={supplier.leadTimeDays} onChange={(e) => setSupplier({ ...supplier, leadTimeDays: e.target.value })}/></label><button className="btn-primary w-full">Save supplier</button></form></Modal>
