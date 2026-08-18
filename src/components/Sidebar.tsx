@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { LayoutDashboard, ShoppingCart, Package, AlertTriangle, Clock, BarChart3, ScanBarcode, Settings, PackagePlus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Package, AlertTriangle, Clock, BarChart3, ScanBarcode, Settings, PackagePlus, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 import { useInventoryStore } from '../store/useInventoryStore';
 
 const OWNER_LINKS = [
@@ -32,6 +32,7 @@ export default function Sidebar() {
   const lastSyncedAt = useInventoryStore((s) => s.lastSyncedAt);
   const pendingSyncCount = useInventoryStore((s) => s.pendingSyncCount);
   const syncError = useInventoryStore((s) => s.syncError);
+  const logout = useInventoryStore((s) => s.logout);
   const location = useLocation();
   const links = role === 'owner' ? OWNER_LINKS : STAFF_LINKS;
   const [collapsed, setCollapsed] = useState(() => {
@@ -47,6 +48,12 @@ export default function Sidebar() {
       try { localStorage.setItem('awa-sidebar-collapsed', next ? '1' : '0'); } catch { /* ignore storage errors */ }
       return next;
     });
+  }
+
+  async function handleLogout() {
+    if (!window.confirm('Log out of Awa Stock on this device?')) return;
+    await logout();
+    window.location.assign('/login');
   }
 
   function isActive(to: string, end = false) {
@@ -75,7 +82,7 @@ export default function Sidebar() {
           onClick={toggleCollapsed}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className={`absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-7 w-7 rounded-full border shadow-sm flex items-center justify-center ${role === 'owner' ? 'bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+          className={`absolute -right-4 top-1/2 -translate-y-1/2 z-20 h-8 w-8 rounded-full border shadow-sm flex items-center justify-center ${role === 'owner' ? 'bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
         >
           {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
         </button>
@@ -120,6 +127,16 @@ export default function Sidebar() {
             </>
           )}
         </div>
+        <button
+          type="button"
+          onClick={() => void handleLogout()}
+          title="Log out"
+          aria-label="Log out"
+          className={`w-full flex items-center rounded-lg text-[13px] font-semibold transition-colors ${collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-2.5'} ${role === 'owner' ? 'text-red-300 hover:bg-red-500/10 hover:text-red-200' : 'text-red-600 hover:bg-red-50'}`}
+        >
+          <LogOut size={17} className="shrink-0" />
+          {!collapsed && <span>Log out</span>}
+        </button>
         <p className={`text-[10px] ${collapsed ? 'text-center px-0' : 'px-1'} ${role === 'owner' ? 'text-slate-600' : 'text-slate-400'}`}>Awa Stock · v1.1.0</p>
       </div>
     </aside>

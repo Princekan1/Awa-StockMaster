@@ -24,10 +24,19 @@ service cloud.firestore {
           myProfile().data.role == 'owner'
           || (
             myProfile().data.role == 'staff'
-            && exists(/databases/$(database)/documents/staffInvites/$(request.auth.token.email))
-            && get(/databases/$(database)/documents/staffInvites/$(request.auth.token.email)).data.shopId == shopId
-            && get(/databases/$(database)/documents/staffInvites/$(request.auth.token.email)).data.status == 'active'
-            && get(/databases/$(database)/documents/staffInvites/$(request.auth.token.email)).data.email == request.auth.token.email
+            && (
+              (
+                exists(/databases/$(database)/documents/staffInvites/$(request.auth.token.email))
+                && get(/databases/$(database)/documents/staffInvites/$(request.auth.token.email)).data.shopId == shopId
+                && get(/databases/$(database)/documents/staffInvites/$(request.auth.token.email)).data.status == 'active'
+              )
+              || (
+                myProfile().data.email != null
+                && exists(/databases/$(database)/documents/staffInvites/$(myProfile().data.email))
+                && get(/databases/$(database)/documents/staffInvites/$(myProfile().data.email)).data.shopId == shopId
+                && get(/databases/$(database)/documents/staffInvites/$(myProfile().data.email)).data.status == 'active'
+              )
+            )
           )
         );
     }

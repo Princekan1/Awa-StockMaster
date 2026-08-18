@@ -143,8 +143,8 @@ export default function Settings() {
     <div className="max-w-3xl">
       <Header title="Settings" subtitle="Manage your shop, staff, suppliers and synchronization" />
 
-      {/* Keep account controls at the top of Settings so logout is always easy to find on phones. */}
-      <section className="ui-card p-4 sm:p-5 mb-5">
+      {/* Account logout is intentionally mobile-only. Desktop users log out from the sidebar. */}
+      <section className="ui-card p-4 sm:p-5 mb-5 md:hidden">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1">
