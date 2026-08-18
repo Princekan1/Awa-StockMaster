@@ -1,0 +1,150 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function myProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function myShopId() {
+      return myProfile().data.shopId;
+    }
+
+    function isOwner() {
+      return signedIn() && myProfile().data.role == 'owner';
+    }
+
+    function isMember(shopId) {
+      return signedIn()
+        && myShopId() == shopId
+        && (
+          myProfile().data.role == 'owner'
+          || (
+            myProfile().data.role == 'staff'
+            && exists(/databases/$(database)/documents/staffInvites/$(request.auth.token.email))
+            && get(/databases/$(database)/documents/staffInvites/$(request.auth.token.email)).data.shopId == shopId
+            && get(/databases/$(database)/documents/staffInvites/$(request.auth.token.email)).data.status == 'active'
+            && get(/databases/$(database)/documents/staffInvites/$(request.auth.token.email)).data.email == request.auth.token.email
+          )
+        );
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (
+        request.auth.uid == userId
+        || (isOwner() && resource.data.shopId == myShopId())
+      );
+
+      allow create: if signedIn() && request.auth.uid == userId
+        && (
+          (
+            request.resource.data.role == 'owner'
+            && request.resource.data.shopId == 'shop_' + request.auth.uid
+            && request.resource.data.email == request.auth.token.email
+          )
+          ||
+          (
+            request.resource.data.role == 'staff'
+            && request.resource.data.email == request.auth.token.email
+            && exists(/databases/$(database)/documents/staffInvites/$(request.auth.token.email))
+            && get(/databases/$(database)/documents/staffInvites/$(request.auth.token.email)).data.status == 'active'
+            && get(/databases/$(database)/documents/staffInvites/$(request.auth.token.email)).data.shopId == request.resource.data.shopId
+          )
+        );
+
+      // Users may change only their display name. Role, shop, and email are
+      // immutable from the client and therefore cannot be self-escalated.
+      allow update: if signedIn() && request.auth.uid == userId
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.shopId == resource.data.shopId
+        && request.resource.data.email == resource.data.email;
+
+      allow delete: if false;
+    }
+
+    match /staffInvites/{inviteId} {
+      allow read: if signedIn() && (
+        inviteId == request.auth.token.email
+        || (isOwner() && resource.data.shopId == myShopId())
+      );
+
+      allow create: if isOwner()
+        && request.resource.data.shopId == myShopId()
+        && request.resource.data.email == inviteId;
+
+      allow update: if isOwner()
+        && resource.data.shopId == myShopId()
+        && request.resource.data.shopId == myShopId()
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.email == inviteId;
+
+      allow delete: if isOwner() && resource.data.shopId == myShopId();
+    }
+
+    match /shops/{shopId} {
+      allow read: if isMember(shopId);
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && shopId == 'shop_' + request.auth.uid;
+      allow update: if isOwner()
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid;
+      allow delete: if false;
+
+      match /settings/{document=**} {
+        allow read: if isMember(shopId);
+        allow write: if isOwner() && isMember(shopId);
+      }
+
+      match /products/{productId} {
+        allow read: if isMember(shopId);
+        allow create: if isOwner() && isMember(shopId);
+        // Product quantity is derived from immutable movements. Staff never
+        // write product documents; this prevents a client from setting stock
+        // directly without an auditable movement.
+        allow update: if isOwner() && isMember(shopId);
+        allow delete: if false;
+      }
+
+      match /sales/{saleId} {
+        allow read: if isMember(shopId);
+        allow create: if isMember(shopId)
+          && request.resource.data.cashierId == request.auth.uid
+          && request.resource.data.productId is string
+          && exists(/databases/$(database)/documents/shops/$(shopId)/products/$(request.resource.data.productId))
+          && request.resource.data.quantity is int
+          && request.resource.data.quantity > 0
+          && request.resource.data.unitPrice is number
+          && request.resource.data.unitPrice >= 0
+          && request.resource.data.total is number
+          && request.resource.data.total >= 0
+          && request.resource.data.total == request.resource.data.unitPrice * request.resource.data.quantity;
+        allow update, delete: if false;
+      }
+
+      match /movements/{movementId} {
+        allow read: if isMember(shopId);
+        allow create: if isMember(shopId)
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.productId is string
+          && exists(/databases/$(database)/documents/shops/$(shopId)/products/$(request.resource.data.productId))
+          && request.resource.data.quantity is int
+          && request.resource.data.quantity != 0
+          && request.resource.data.type in ['SALE', 'STOCK_IN', 'ADJUSTMENT', 'DAMAGE', 'LOSS'];
+        allow update, delete: if false;
+      }
+
+      match /suppliers/{supplierId} {
+        allow read: if isMember(shopId);
+        allow create, update, delete: if isOwner() && isMember(shopId);
+      }
+
+      match /staff/{staffId} {
+        allow read, create, update, delete: if isOwner() && isMember(shopId);
+      }
+    }
+  }
+}
