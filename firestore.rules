@@ -143,7 +143,10 @@ service cloud.firestore {
       }
 
       match /staff/{staffId} {
-        allow read, create, update, delete: if isOwner() && isMember(shopId);
+        // Staff need read access to their shop's staff records so the app can
+        // detect when their access is disabled. Only the owner may modify them.
+        allow read: if isMember(shopId);
+        allow create, update, delete: if isOwner() && isMember(shopId);
       }
     }
   }
