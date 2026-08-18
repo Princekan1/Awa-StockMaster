@@ -1,6 +1,7 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signInWithPopup,
   signOut,
   updateProfile,
@@ -134,6 +135,12 @@ export async function signUpEmail(email: string, password: string, displayName: 
   return cred.user;
 }
 
+export async function sendPasswordReset(email: string) {
+  const normalized = email.trim();
+  if (!normalized) throw new Error('Please enter your email address first.');
+  await sendPasswordResetEmail(auth, normalized);
+}
+
 export async function signInGoogle() {
   const cred = await signInWithPopup(auth, googleProvider);
   return cred.user;
@@ -155,6 +162,7 @@ export function friendlyAuthError(err: unknown): string {
     case 'auth/weak-password': return 'Password should be at least 6 characters.';
     case 'auth/popup-closed-by-user': return 'Google sign-in was closed before completing.';
     case 'auth/network-request-failed': return 'Network error. Check your connection and try again.';
+    case 'auth/too-many-requests': return 'Too many attempts. Please wait a little and try again.';
     case 'auth/api-key-not-valid':
     case 'auth/invalid-api-key': return 'Firebase is not configured yet — add your project keys to .env.';
     default: return code ? `Sign-in failed (${code}).` : 'Sign-in failed. Please try again.';
