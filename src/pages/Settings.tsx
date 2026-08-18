@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Truck, Users, Store, RefreshCw, Plus, Trash2, ShieldCheck, Power, Save, Download, Upload } from 'lucide-react';
+import { Truck, Users, Store, RefreshCw, Plus, Trash2, ShieldCheck, Power, Save, Download, Upload, LogOut } from 'lucide-react';
 import { useInventoryStore } from '../store/useInventoryStore';
 import Header from '../components/Header';
 import EmptyState from '../components/EmptyState';
@@ -41,6 +41,7 @@ export default function Settings() {
   const sales = useInventoryStore((s) => s.sales);
   const movements = useInventoryStore((s) => s.movements);
   const shopId = useInventoryStore((s) => s.shopId);
+  const logout = useInventoryStore((s) => s.logout);
 
   const tabs = role === 'owner' ? OWNER_TABS : STAFF_TABS;
   const [tab, setTab] = useState<Tab>(tabs[0].key);
@@ -85,6 +86,8 @@ export default function Settings() {
       setRestoring(false);
     }
   }
+
+  async function handleLogout() { await logout(); window.location.assign('/login'); }
 
   async function handleExport() {
     setExporting(true);
@@ -144,7 +147,20 @@ export default function Settings() {
 
       {tab === 'data' && role === 'owner' && <section className="ui-card p-5"><div className="flex items-center gap-3 mb-5"><Download size={20}/><div><h2 className="font-display font-bold">Backup & data</h2><p className="text-xs text-[var(--color-ink-muted)]">Create a verified backup or restore a previous backup for this shop.</p></div></div><div className="space-y-4 text-sm"><div className="rounded-lg p-3" style={{ background: 'var(--color-blue-soft)', color: 'var(--color-ink)' }}><p className="font-semibold mb-1">Backup contents</p><p className="text-xs text-[var(--color-ink-muted)]">Products, sales, stock movements, suppliers, staff records and business settings.</p></div><div className="rounded-lg bg-slate-50 px-3 py-2.5"><Row label="Products" value={String(products.length)}/><Row label="Sales" value={String(sales.length)}/><Row label="Stock movements" value={String(movements.length)}/><Row label="Last sync" value={lastSyncedAt ? new Date(lastSyncedAt).toLocaleString('en-NG') : 'Not synced yet'}/></div><button type="button" disabled={exporting || !shopId} onClick={() => void handleExport()} className="btn-primary"><Download size={15}/>{exporting ? 'Preparing backup…' : 'Download verified backup'}</button><label className={`btn-secondary justify-center ${restoring ? 'opacity-50 pointer-events-none' : ''}`}><Upload size={15}/>{restoring ? 'Restoring…' : 'Restore backup'}<input type="file" accept="application/json,.json" className="sr-only" disabled={restoring || !isOnline} onChange={(e) => { const file = e.target.files?.[0]; if (file) void handleRestore(file); e.currentTarget.value = ''; }}/></label><p className="text-xs text-[var(--color-ink-muted)]">Restore requires internet access and replaces the current cloud data for this shop. Always keep a separate backup before restoring.</p></div></section>}
 
-      {role === 'staff' && <section className="ui-card p-5 mt-5"><h2 className="font-display font-bold mb-1">My account</h2><p className="text-sm">{userName}</p><p className="text-xs text-[var(--color-ink-muted)]">{email}</p><p className="text-xs text-[var(--color-ink-muted)] mt-2">Role: Staff / Cashier</p></section>}
+      <section className="ui-card p-5 mt-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="font-display font-bold mb-1">My account</h2>
+            <p className="text-sm truncate">{userName}</p>
+            <p className="text-xs text-[var(--color-ink-muted)] truncate">{email}</p>
+            <p className="text-xs text-[var(--color-ink-muted)] mt-2">Role: {role === 'owner' ? 'Owner' : 'Staff / Cashier'}</p>
+          </div>
+          <button type="button" onClick={() => void handleLogout()} className="btn-secondary shrink-0 text-xs">
+            <LogOut size={15} /> Log out
+          </button>
+        </div>
+      </section>
+
 
       <Modal open={supplierOpen} onClose={() => setSupplierOpen(false)} title="Add supplier"><form onSubmit={(e) => { e.preventDefault(); if (!supplier.name.trim()) return; addSupplier({ name: supplier.name.trim(), phone: supplier.phone.trim(), leadTimeDays: Math.max(0, Number(supplier.leadTimeDays) || 0) }); setSupplier({ name: '', phone: '', leadTimeDays: '2' }); setSupplierOpen(false); }} className="space-y-3"><label><span className="label">Supplier name</span><input className="field" value={supplier.name} onChange={(e) => setSupplier({ ...supplier, name: e.target.value })}/></label><label><span className="label">Phone</span><input className="field" value={supplier.phone} onChange={(e) => setSupplier({ ...supplier, phone: e.target.value })}/></label><label><span className="label">Lead time (days)</span><input type="number" min="0" className="field" value={supplier.leadTimeDays} onChange={(e) => setSupplier({ ...supplier, leadTimeDays: e.target.value })}/></label><button className="btn-primary w-full">Save supplier</button></form></Modal>
       <Modal open={staffOpen} onClose={() => setStaffOpen(false)} title="Invite staff"><form onSubmit={(e) => void handleStaff(e)} className="space-y-3"><p className="text-xs text-[var(--color-ink-muted)]">The staff member must create or use a Firebase account with this exact email address.</p><label><span className="label">Staff name</span><input className="field" required value={staffForm.name} onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}/></label><label><span className="label">Email</span><input type="email" className="field" required value={staffForm.email} onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}/></label><button className="btn-primary w-full">Create invitation</button></form></Modal>

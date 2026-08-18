@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ShoppingBag, User, Lock, Eye, EyeOff, Store, Loader2 } from 'lucide-react';
-import { signInEmail, signUpEmail, signInGoogle, friendlyAuthError } from '../lib/authService';
+import { signInEmail, signUpEmail, signInGoogle, sendPasswordReset, friendlyAuthError } from '../lib/authService';
 import { isFirebaseConfigured } from '../lib/firebase';
 
 export default function Login() {
@@ -10,7 +10,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
-  const [busy, setBusy] = useState<'email' | 'google' | null>(null);
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState<'email' | 'google' | 'reset' | null>(null);
 
   // Navigation happens automatically: App.tsx listens for Firebase auth
   // state changes and routes signed-in users away from /login.
@@ -18,6 +19,7 @@ export default function Login() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setMessage('');
 
     if (!email.trim() || !password) {
       setError('Please enter your email and password.');
@@ -31,6 +33,25 @@ export default function Login() {
       } else {
         await signInEmail(email, password);
       }
+    } catch (err) {
+      setError(friendlyAuthError(err));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onForgotPassword() {
+    setError('');
+    setMessage('');
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      setError('Enter your email address first, then tap Forgot password.');
+      return;
+    }
+    setBusy('reset');
+    try {
+      await sendPasswordReset(normalizedEmail);
+      setMessage('Password reset email sent. Check your inbox and spam folder.');
     } catch (err) {
       setError(friendlyAuthError(err));
     } finally {
@@ -111,7 +132,7 @@ export default function Login() {
           <div className="flex gap-1.5 p-1 rounded-xl bg-slate-50 border mb-6" style={{ borderColor: 'var(--color-line)' }}>
             <button
               type="button"
-              onClick={() => { setMode('signIn'); setError(''); }}
+              onClick={() => { setMode('signIn'); setError(''); setMessage(''); }}
               className="flex-1 rounded-lg py-2 text-sm font-semibold transition"
               style={{
                 background: mode === 'signIn' ? 'var(--color-brand)' : 'transparent',
@@ -122,7 +143,7 @@ export default function Login() {
             </button>
             <button
               type="button"
-              onClick={() => { setMode('signUp'); setError(''); }}
+              onClick={() => { setMode('signUp'); setError(''); setMessage(''); }}
               className="flex-1 rounded-lg py-2 text-sm font-semibold transition"
               style={{
                 background: mode === 'signUp' ? 'var(--color-brand)' : 'transparent',
@@ -204,6 +225,22 @@ export default function Login() {
               </div>
             </div>
 
+            {mode === 'signIn' && (
+              <div className="flex justify-end -mt-1">
+                <button
+                  type="button"
+                  onClick={() => void onForgotPassword()}
+                  disabled={busy !== null}
+                  className="text-xs font-semibold text-[var(--color-brand)] hover:underline disabled:opacity-50"
+                >
+                  {busy === 'reset' ? 'Sending…' : 'Forgot password?'}
+                </button>
+              </div>
+            )}
+
+            {message && (
+              <p className="text-sm text-emerald-700 font-medium">{message}</p>
+            )}
             {error && (
               <p className="text-sm text-[var(--color-red)] font-medium">{error}</p>
             )}
