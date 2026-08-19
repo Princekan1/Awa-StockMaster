@@ -1,193 +1,367 @@
 import { useEffect, useState } from 'react';
-import { Truck, Users, Store, RefreshCw, Plus, Trash2, ShieldCheck, Power, Save, Download, Upload, LogOut } from 'lucide-react';
+import {
+  LogOut,
+  Users,
+  Truck,
+  Building2,
+  RefreshCw,
+  Plus,
+  User,
+} from 'lucide-react';
 import { useInventoryStore } from '../store/useInventoryStore';
 import Header from '../components/Header';
-import EmptyState from '../components/EmptyState';
 import Modal from '../components/Modal';
-import { formatNaira } from '../lib/logic';
-import { downloadBackup, parseBackupFile } from '../lib/backup';
 
-const OWNER_TABS = [
-  { key: 'suppliers', label: 'Suppliers', icon: Truck },
-  { key: 'users', label: 'Staff', icon: Users },
-  { key: 'business', label: 'Business', icon: Store },
-  { key: 'sync', label: 'Sync', icon: RefreshCw },
-  { key: 'data', label: 'Data', icon: Download },
-] as const;
-const STAFF_TABS = [{ key: 'sync', label: 'Sync', icon: RefreshCw }] as const;
-
-type Tab = (typeof OWNER_TABS)[number]['key'] | 'profile';
+type Tab = 'suppliers' | 'staff' | 'business' | 'sync';
 
 export default function Settings() {
   const role = useInventoryStore((s) => s.role);
-  const settings = useInventoryStore((s) => s.settings);
-  const suppliers = useInventoryStore((s) => s.suppliers);
-  const staff = useInventoryStore((s) => s.staff);
-  const isOnline = useInventoryStore((s) => s.isOnline);
-  const syncStatus = useInventoryStore((s) => s.syncStatus);
-  const syncError = useInventoryStore((s) => s.syncError);
-  const lastSyncedAt = useInventoryStore((s) => s.lastSyncedAt);
-  const pendingSyncCount = useInventoryStore((s) => s.pendingSyncCount);
   const userName = useInventoryStore((s) => s.userName);
   const email = useInventoryStore((s) => s.email);
-  const updateBusinessSettings = useInventoryStore((s) => s.updateBusinessSettings);
-  const addSupplier = useInventoryStore((s) => s.addSupplier);
-  const deleteSupplier = useInventoryStore((s) => s.deleteSupplier);
-  const inviteStaff = useInventoryStore((s) => s.inviteStaff);
-  const setStaffStatus = useInventoryStore((s) => s.setStaffStatus);
-  const syncCloud = useInventoryStore((s) => s.syncCloud);
-  const restoreBackup = useInventoryStore((s) => s.restoreBackup);
-  const products = useInventoryStore((s) => s.products);
-  const sales = useInventoryStore((s) => s.sales);
-  const movements = useInventoryStore((s) => s.movements);
-  const shopId = useInventoryStore((s) => s.shopId);
   const logout = useInventoryStore((s) => s.logout);
+  const suppliers = useInventoryStore((s) => s.suppliers);
+  const staff = useInventoryStore((s) => s.staff);
+  const settings = useInventoryStore((s) => s.settings);
+  const isOnline = useInventoryStore((s) => s.isOnline);
+  const syncStatus = useInventoryStore((s) => s.syncStatus);
+  const lastSyncedAt = useInventoryStore((s) => s.lastSyncedAt);
+  const pendingSyncCount = useInventoryStore((s) => s.pendingSyncCount);
+  const syncCloud = useInventoryStore((s) => s.syncCloud);
+  const addSupplier = useInventoryStore((s) => s.addSupplier);
+  const inviteStaff = useInventoryStore((s) => s.inviteStaff);
+  const updateBusinessSettings = useInventoryStore((s) => s.updateBusinessSettings);
 
-  const tabs = role === 'owner' ? OWNER_TABS : STAFF_TABS;
-  const [tab, setTab] = useState<Tab>(tabs[0].key);
+  const [tab, setTab] = useState<Tab>('suppliers');
   const [supplierOpen, setSupplierOpen] = useState(false);
   const [staffOpen, setStaffOpen] = useState(false);
+  const [supplierName, setSupplierName] = useState('');
+  const [supplierPhone, setSupplierPhone] = useState('');
+  const [supplierEmail, setSupplierEmail] = useState('');
+  const [supplierLeadTime, setSupplierLeadTime] = useState('');
+  const [staffName, setStaffName] = useState('');
+  const [staffEmail, setStaffEmail] = useState('');
+  const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [business, setBusiness] = useState({ shopName: settings?.shopName ?? '', defaultMinimumStock: String(settings?.defaultMinimumStock ?? 5), expiryWarningDays: String(settings?.expiryWarningDays ?? 30) });
-  const [supplier, setSupplier] = useState({ name: '', phone: '', leadTimeDays: '2' });
-  const [staffForm, setStaffForm] = useState({ name: '', email: '' });
-  const [message, setMessage] = useState('');
-  const [exporting, setExporting] = useState(false);
-  const [restoring, setRestoring] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
+  const [shopName, setShopName] = useState('');
+  const [minimumStock, setMinimumStock] = useState('5');
+  const [expiryWarningDays, setExpiryWarningDays] = useState('30');
+  const [businessMessage, setBusinessMessage] = useState('');
 
-  useEffect(() => setBusiness({ shopName: settings?.shopName ?? '', defaultMinimumStock: String(settings?.defaultMinimumStock ?? 5), expiryWarningDays: String(settings?.expiryWarningDays ?? 30) }), [settings]);
+  const isOwner = role === 'owner';
 
-  async function saveBusiness(e: React.FormEvent) {
-    e.preventDefault(); setSaving(true); setMessage('');
-    try { await updateBusinessSettings({ shopName: business.shopName.trim() || 'My Shop', defaultMinimumStock: Math.max(0, Number(business.defaultMinimumStock) || 0), expiryWarningDays: Math.max(1, Number(business.expiryWarningDays) || 30) }); setMessage('Business settings saved.'); }
-    finally { setSaving(false); }
-  }
-
-  async function handleStaff(e: React.FormEvent) {
-    e.preventDefault(); setMessage('');
-    const result = await inviteStaff(staffForm);
-    setMessage(result.message);
-    if (result.ok) { setStaffForm({ name: '', email: '' }); setStaffOpen(false); }
-  }
-
-
-  async function handleRestore(file: File) {
-    if (!shopId || role !== 'owner') return;
-    if (!confirm('Restore this backup? This will replace the shop data currently stored in Firestore. This cannot be undone.')) return;
-    setRestoring(true);
-    setMessage('');
-    try {
-      const backup = await parseBackupFile(file, shopId);
-      const result = await restoreBackup(backup);
-      setMessage(result.message);
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Could not restore the backup.');
-    } finally {
-      setRestoring(false);
-    }
-  }
+  useEffect(() => {
+    setShopName(settings?.shopName ?? '');
+    setMinimumStock(String(settings?.defaultMinimumStock ?? 5));
+    setExpiryWarningDays(String(settings?.expiryWarningDays ?? 30));
+  }, [settings]);
 
   async function handleLogout() {
-    if (loggingOut) return;
     if (!window.confirm('Log out of Awa Stock on this device?')) return;
-    setLoggingOut(true);
+    await logout();
+    window.location.assign('/login');
+  }
+
+  function openSupplierModal() {
+    setFormError('');
+    setSupplierName('');
+    setSupplierPhone('');
+    setSupplierEmail('');
+    setSupplierLeadTime('');
+    setSupplierOpen(true);
+  }
+
+  function openStaffModal() {
+    setFormError('');
+    setStaffName('');
+    setStaffEmail('');
+    setStaffOpen(true);
+  }
+
+  function handleAddSupplier(event: React.FormEvent) {
+    event.preventDefault();
+    const name = supplierName.trim();
+    if (!name) {
+      setFormError('Enter the supplier name.');
+      return;
+    }
+    const leadTimeDays = supplierLeadTime.trim() ? Number(supplierLeadTime) : 0;
+    if (!Number.isInteger(leadTimeDays) || leadTimeDays < 0) {
+      setFormError('Lead time must be a whole number of days.');
+      return;
+    }
+    addSupplier({
+      name,
+      phone: supplierPhone.trim(),
+      email: supplierEmail.trim() || undefined,
+      leadTimeDays,
+    });
+    setSupplierOpen(false);
+  }
+
+  async function handleInviteStaff(event: React.FormEvent) {
+    event.preventDefault();
+    setFormError('');
+    const name = staffName.trim();
+    const normalizedEmail = staffEmail.trim();
+    if (!name) {
+      setFormError('Enter the staff member name.');
+      return;
+    }
+    if (!normalizedEmail || !normalizedEmail.includes('@')) {
+      setFormError('Enter a valid staff email.');
+      return;
+    }
+
+    setSaving(true);
     try {
-      await logout();
-      window.location.assign('/login');
+      const result = await inviteStaff({ name, email: normalizedEmail });
+      if (!result.ok) {
+        setFormError(result.message);
+        return;
+      }
+      setStaffOpen(false);
+      window.alert(result.message);
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Could not invite this staff member.');
     } finally {
-      setLoggingOut(false);
+      setSaving(false);
     }
   }
 
-  async function handleExport() {
-    setExporting(true);
-    setMessage('');
+  async function handleSaveBusiness(event: React.FormEvent) {
+    event.preventDefault();
+    setBusinessMessage('');
+    const min = Number(minimumStock);
+    const expiry = Number(expiryWarningDays);
+    if (!shopName.trim()) {
+      setBusinessMessage('Enter a shop name.');
+      return;
+    }
+    if (!Number.isInteger(min) || min < 0 || !Number.isInteger(expiry) || expiry < 0) {
+      setBusinessMessage('Minimum stock and expiry warning must be whole numbers.');
+      return;
+    }
     try {
-      let status = syncStatus;
-      if (isOnline && syncStatus !== 'syncing') {
-        await syncCloud();
-        status = useInventoryStore.getState().syncStatus;
-      }
-      const state = useInventoryStore.getState();
-      if (isOnline && status !== 'synced') {
-        throw new Error('Cloud sync did not complete successfully. Fix the sync issue before creating a cloud-backed backup.');
-      }
-      downloadBackup({
-        schemaVersion: 2,
-        app: 'Awa Stock',
-        exportedAt: new Date().toISOString(),
-        shopId: state.shopId!,
-        shopName: state.settings?.shopName ?? 'My Shop',
-        lastSyncedAt: state.lastSyncedAt,
-        syncStatus: status,
-        backupSource: isOnline ? 'synced-cloud' : 'local-offline',
-        recordCounts: { products: state.products.length, sales: state.sales.length, movements: state.movements.length, suppliers: state.suppliers.length, staff: state.staff.length },
-        products: state.products,
-        sales: state.sales,
-        movements: state.movements,
-        suppliers: state.suppliers,
-        staff: state.staff,
-        settings: state.settings,
+      await updateBusinessSettings({
+        shopName: shopName.trim(),
+        defaultMinimumStock: min,
+        expiryWarningDays: expiry,
       });
-      setMessage(isOnline ? 'Backup downloaded from successfully synced shop data.' : 'Offline backup downloaded from this device. Sync it when you reconnect.');
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Could not create the backup.');
-    } finally {
-      setExporting(false);
+      setBusinessMessage('Business settings saved.');
+    } catch (error) {
+      setBusinessMessage(error instanceof Error ? error.message : 'Could not save business settings.');
     }
   }
 
+  const tabs: Array<{ id: Tab; label: string; icon: typeof Truck; ownerOnly?: boolean }> = [
+    { id: 'suppliers', label: 'Suppliers', icon: Truck },
+    { id: 'staff', label: 'Staff', icon: Users, ownerOnly: true },
+    { id: 'business', label: 'Business', icon: Building2, ownerOnly: true },
+    { id: 'sync', label: 'Sync', icon: RefreshCw },
+  ];
+
+  const visibleTabs = tabs.filter((t) => !t.ownerOnly || isOwner);
 
   return (
-    <div className="max-w-3xl">
-      <Header title="Settings" subtitle="Manage your shop, staff, suppliers and synchronization" />
+    <div>
+      <Header title="Settings" subtitle="Shop, staff, suppliers and sync" />
 
-      {/* Account logout is intentionally mobile-only. Desktop users log out from the sidebar. */}
-      <section className="ui-card p-4 sm:p-5 mb-5 md:hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <LogOut size={18} className="text-[var(--color-brand)]" aria-hidden="true" />
-              <h2 className="font-display font-bold">My account</h2>
+      <section className="page-section">
+        <div
+          className="rounded-2xl border bg-white p-3.5 shadow-sm"
+          style={{ borderColor: 'var(--color-line)' }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-brand-muted)] text-sm font-bold text-[var(--color-brand)]">
+              {(userName || 'U').charAt(0).toUpperCase()}
             </div>
-            <p className="text-sm truncate">{userName}</p>
-            <p className="text-xs text-[var(--color-ink-muted)] truncate">{email}</p>
-            <p className="text-xs text-[var(--color-ink-muted)] mt-1">Role: {role === 'owner' ? 'Owner' : 'Staff / Cashier'}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-[var(--color-ink)] truncate">{userName || 'User'}</p>
+              <p className="text-xs text-[var(--color-ink-muted)] truncate">{email || '—'}</p>
+              <p className="mt-0.5 text-[0.7rem] font-semibold uppercase tracking-wide text-[var(--color-ink-muted)]">
+                {isOwner ? 'Owner' : 'Staff'}
+              </p>
+            </div>
           </div>
+
+          {/* Mobile only: desktop logout lives in the sidebar. */}
           <button
             type="button"
             onClick={() => void handleLogout()}
-            disabled={loggingOut}
-            className="w-full sm:w-auto min-h-12 inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-5 py-3 text-sm font-bold text-red-700 transition hover:bg-red-100 disabled:opacity-60"
+            className="md:hidden mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 py-2.5 text-sm font-semibold text-red-600 active:scale-[0.99]"
           >
-            <LogOut size={17} />
-            {loggingOut ? 'Logging out…' : 'Log out'}
+            <LogOut size={15} strokeWidth={2.25} />
+            Log out
           </button>
         </div>
       </section>
 
-      <div className="flex gap-1 overflow-x-auto border-b mb-5" style={{ borderColor: 'var(--color-line)' }}>
-        {tabs.map((t) => { const Icon = t.icon; return <button key={t.key} type="button" onClick={() => setTab(t.key)} className={`px-3 py-2.5 text-xs font-semibold whitespace-nowrap border-b-2 ${tab === t.key ? 'text-[var(--color-brand)] border-[var(--color-brand)]' : 'text-[var(--color-ink-muted)] border-transparent'}`}><Icon size={14} className="inline mr-1.5"/>{t.label}</button>; })}
-      </div>
+      <section className="page-section">
+        <div className="flex gap-1 overflow-x-auto rounded-xl border bg-white p-1 shadow-sm scrollbar-none" style={{ borderColor: 'var(--color-line)' }}>
+          {visibleTabs.map((t) => {
+            const Icon = t.icon;
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition ${
+                  active ? 'bg-[var(--color-brand-muted)] text-[var(--color-brand)]' : 'text-[var(--color-ink-muted)]'
+                }`}
+              >
+                <Icon size={14} strokeWidth={2.25} />
+                <span className="truncate">{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
-      {message && <div className="rounded-xl p-3 mb-4 text-sm" style={{ background: 'var(--color-blue-soft)', color: 'var(--color-blue)' }}>{message}</div>}
+      <section className="page-section">
+        {tab === 'suppliers' && (
+          <div className="overflow-hidden rounded-2xl border bg-white shadow-sm" style={{ borderColor: 'var(--color-line)' }}>
+            <div className="flex items-center justify-between border-b px-3.5 py-3" style={{ borderColor: 'var(--color-line)' }}>
+              <div>
+                <p className="text-sm font-bold text-[var(--color-ink)]">Suppliers</p>
+                <p className="text-xs text-[var(--color-ink-muted)]">Stored in this shop</p>
+              </div>
+              {isOwner && (
+                <button
+                  type="button"
+                  onClick={openSupplierModal}
+                  className="inline-flex items-center gap-1 rounded-xl bg-[var(--color-brand)] px-3 py-1.5 text-xs font-semibold text-white active:scale-[0.98]"
+                >
+                  <Plus size={14} strokeWidth={2.5} />
+                  Add
+                </button>
+              )}
+            </div>
 
-      {tab === 'business' && role === 'owner' && <section className="ui-card p-5"><div className="flex items-center gap-3 mb-5"><Store size={20}/><div><h2 className="font-display font-bold">Business information</h2><p className="text-xs text-[var(--color-ink-muted)]">These settings are stored with your shop.</p></div></div><form onSubmit={saveBusiness} className="space-y-4"><label className="block"><span className="label">Shop name</span><input value={business.shopName} onChange={(e) => setBusiness({ ...business, shopName: e.target.value })} className="field" placeholder="Awa Mini Mart"/></label><div className="grid sm:grid-cols-2 gap-3"><label><span className="label">Default minimum stock</span><input type="number" min="0" value={business.defaultMinimumStock} onChange={(e) => setBusiness({ ...business, defaultMinimumStock: e.target.value })} className="field"/></label><label><span className="label">Expiry warning (days)</span><input type="number" min="1" value={business.expiryWarningDays} onChange={(e) => setBusiness({ ...business, expiryWarningDays: e.target.value })} className="field"/></label></div><p className="text-xs text-[var(--color-ink-muted)]">Currency: <strong>NGN</strong> · Example: {formatNaira(10000)}</p><button disabled={saving} className="btn-primary"><Save size={15}/>{saving ? 'Saving…' : 'Save changes'}</button></form></section>}
+            {suppliers.length === 0 ? (
+              <div className="px-4 py-8 text-center">
+                <Truck size={24} className="mx-auto mb-2 text-[var(--color-ink-muted)]" strokeWidth={1.5} />
+                <p className="text-sm font-semibold text-[var(--color-ink)]">No suppliers yet</p>
+                <p className="mt-1 text-xs text-[var(--color-ink-muted)]">Add suppliers to track who you buy from</p>
+              </div>
+            ) : (
+              suppliers.map((s) => (
+                <div key={s.id} className="flex items-center justify-between gap-3 border-b px-3.5 py-3 last:border-b-0" style={{ borderColor: 'var(--color-line)' }}>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[var(--color-ink)]">{s.name}</p>
+                    <p className="text-xs text-[var(--color-ink-muted)]">
+                      {s.phone || 'No phone'}{s.leadTimeDays ? ` · ${s.leadTimeDays}d lead` : ''}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
-      {tab === 'suppliers' && role === 'owner' && <section className="ui-card overflow-hidden"><div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--color-line)' }}><div><h2 className="font-display font-bold">Suppliers</h2><p className="text-xs text-[var(--color-ink-muted)]">Stored in the shop database.</p></div><button className="btn-primary text-xs" onClick={() => setSupplierOpen(true)}><Plus size={15}/> Add supplier</button></div>{suppliers.length === 0 ? <EmptyState title="No suppliers yet" description="Add your regular suppliers here."/> : <div className="divide-y">{suppliers.map((s) => <div key={s.id} className="p-4 flex items-center justify-between gap-3"><div><p className="font-semibold text-sm">{s.name}</p><p className="text-xs text-[var(--color-ink-muted)]">{s.phone || 'No phone'} · {s.leadTimeDays} day lead time</p></div><button className="p-2 text-[var(--color-red)]" onClick={() => { if (confirm(`Remove ${s.name}?`)) deleteSupplier(s.id); }}><Trash2 size={16}/></button></div>)}</div>}</section>}
+        {tab === 'staff' && isOwner && (
+          <div className="overflow-hidden rounded-2xl border bg-white shadow-sm" style={{ borderColor: 'var(--color-line)' }}>
+            <div className="flex items-center justify-between border-b px-3.5 py-3" style={{ borderColor: 'var(--color-line)' }}>
+              <div>
+                <p className="text-sm font-bold text-[var(--color-ink)]">Staff</p>
+                <p className="text-xs text-[var(--color-ink-muted)]">Invite by exact email</p>
+              </div>
+              <button
+                type="button"
+                onClick={openStaffModal}
+                className="inline-flex items-center gap-1 rounded-xl bg-[var(--color-brand)] px-3 py-1.5 text-xs font-semibold text-white active:scale-[0.98]"
+              >
+                <Plus size={14} strokeWidth={2.5} />
+                Invite
+              </button>
+            </div>
 
-      {tab === 'users' && role === 'owner' && <section className="ui-card overflow-hidden"><div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--color-line)' }}><div><h2 className="font-display font-bold">Staff access</h2><p className="text-xs text-[var(--color-ink-muted)]">Staff sign in with the invited email.</p></div><button className="btn-primary text-xs" onClick={() => setStaffOpen(true)}><Plus size={15}/> Invite staff</button></div>{staff.length === 0 ? <EmptyState title="No staff yet" description="Invite a cashier by email."/> : <div className="divide-y">{staff.map((s) => <div key={s.id} className="p-4 flex items-center justify-between gap-3"><div><p className="font-semibold text-sm">{s.name}</p><p className="text-xs text-[var(--color-ink-muted)]">{s.email} · {s.status}</p></div><button className="btn-secondary text-xs" onClick={() => void setStaffStatus(s.id, s.status === 'active' ? 'inactive' : 'active')}><Power size={14}/>{s.status === 'active' ? 'Disable' : 'Enable'}</button></div>)}</div>}</section>}
+            {staff.length === 0 ? (
+              <div className="px-4 py-8 text-center">
+                <User size={24} className="mx-auto mb-2 text-[var(--color-ink-muted)]" strokeWidth={1.5} />
+                <p className="text-sm font-semibold text-[var(--color-ink)]">No staff yet</p>
+                <p className="mt-1 text-xs text-[var(--color-ink-muted)]">Invite cashiers with their email address</p>
+              </div>
+            ) : (
+              staff.map((m) => (
+                <div key={m.id} className="flex items-center justify-between gap-3 border-b px-3.5 py-3 last:border-b-0" style={{ borderColor: 'var(--color-line)' }}>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[var(--color-ink)]">{m.name || m.email}</p>
+                    <p className="text-xs text-[var(--color-ink-muted)] truncate">{m.email}</p>
+                  </div>
+                  <span className={`rounded-full px-2 py-0.5 text-[0.65rem] font-bold ${m.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                    {m.status}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
-      {tab === 'sync' && <section className="ui-card p-5"><div className="flex items-center gap-3 mb-5"><ShieldCheck size={20}/><div><h2 className="font-display font-bold">Cloud synchronization</h2><p className="text-xs text-[var(--color-ink-muted)]">Internet connection and cloud synchronization are tracked separately.</p></div></div><div className="space-y-3 text-sm"><Row label="Internet" value={isOnline ? 'Online' : 'Offline'}/><Row label="Cloud" value={syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'error' ? 'Sync failed' : isOnline ? 'Waiting to sync' : 'Waiting for internet'}/><Row label="Changes waiting to sync" value={String(pendingSyncCount)}/><Row label="Last successful sync" value={lastSyncedAt ? new Date(lastSyncedAt).toLocaleString('en-NG') : 'Not synced yet'}/>{syncError && <p className="rounded-lg p-3 text-xs" style={{ background: 'var(--color-red-soft)', color: 'var(--color-red)' }}>{syncError}</p>}<button type="button" disabled={!isOnline || syncStatus === 'syncing'} onClick={() => void syncCloud()} className="btn-primary"><RefreshCw size={15} className={syncStatus === 'syncing' ? 'animate-spin' : ''}/>{syncStatus === 'syncing' ? 'Syncing…' : syncStatus === 'error' ? 'Retry sync' : 'Sync now'}</button></div></section>}
+        {tab === 'business' && isOwner && (
+          <form onSubmit={handleSaveBusiness} className="rounded-2xl border bg-white p-3.5 shadow-sm" style={{ borderColor: 'var(--color-line)' }}>
+            <p className="text-sm font-bold text-[var(--color-ink)] mb-3">Business settings</p>
+            <div className="space-y-3">
+              <div>
+                <label className="label">Shop name</label>
+                <input className="field" value={shopName} onChange={(e) => setShopName(e.target.value)} placeholder="My Shop" />
+              </div>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="label">Currency</label>
+                  <input className="field" value="NGN" readOnly />
+                </div>
+                <div>
+                  <label className="label">Min stock default</label>
+                  <input className="field" type="number" min="0" step="1" value={minimumStock} onChange={(e) => setMinimumStock(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label className="label">Expiry warning (days)</label>
+                <input className="field" type="number" min="0" step="1" value={expiryWarningDays} onChange={(e) => setExpiryWarningDays(e.target.value)} />
+              </div>
+              {businessMessage && <p className="rounded-lg bg-slate-50 p-3 text-sm text-[var(--color-ink-muted)]">{businessMessage}</p>}
+              <button type="submit" className="btn-primary w-full">Save business settings</button>
+            </div>
+          </form>
+        )}
 
-      {tab === 'data' && role === 'owner' && <section className="ui-card p-5"><div className="flex items-center gap-3 mb-5"><Download size={20}/><div><h2 className="font-display font-bold">Backup & data</h2><p className="text-xs text-[var(--color-ink-muted)]">Create a verified backup or restore a previous backup for this shop.</p></div></div><div className="space-y-4 text-sm"><div className="rounded-lg p-3" style={{ background: 'var(--color-blue-soft)', color: 'var(--color-ink)' }}><p className="font-semibold mb-1">Backup contents</p><p className="text-xs text-[var(--color-ink-muted)]">Products, sales, stock movements, suppliers, staff records and business settings.</p></div><div className="rounded-lg bg-slate-50 px-3 py-2.5"><Row label="Products" value={String(products.length)}/><Row label="Sales" value={String(sales.length)}/><Row label="Stock movements" value={String(movements.length)}/><Row label="Last sync" value={lastSyncedAt ? new Date(lastSyncedAt).toLocaleString('en-NG') : 'Not synced yet'}/></div><button type="button" disabled={exporting || !shopId} onClick={() => void handleExport()} className="btn-primary"><Download size={15}/>{exporting ? 'Preparing backup…' : 'Download verified backup'}</button><label className={`btn-secondary justify-center ${restoring ? 'opacity-50 pointer-events-none' : ''}`}><Upload size={15}/>{restoring ? 'Restoring…' : 'Restore backup'}<input type="file" accept="application/json,.json" className="sr-only" disabled={restoring || !isOnline} onChange={(e) => { const file = e.target.files?.[0]; if (file) void handleRestore(file); e.currentTarget.value = ''; }}/></label><p className="text-xs text-[var(--color-ink-muted)]">Restore requires internet access and replaces the current cloud data for this shop. Always keep a separate backup before restoring.</p></div></section>}
+        {tab === 'sync' && (
+          <div className="rounded-2xl border bg-white p-3.5 shadow-sm" style={{ borderColor: 'var(--color-line)' }}>
+            <p className="text-sm font-bold text-[var(--color-ink)] mb-3">Synchronization</p>
+            <div className="space-y-2.5 text-sm">
+              <div className="flex items-center justify-between"><span className="text-[var(--color-ink-muted)]">Connection</span><span className={`font-semibold ${isOnline ? 'text-emerald-600' : 'text-amber-600'}`}>{isOnline ? 'Online' : 'Offline'}</span></div>
+              <div className="flex items-center justify-between"><span className="text-[var(--color-ink-muted)]">Status</span><span className="font-semibold text-[var(--color-ink)] capitalize">{syncStatus}</span></div>
+              <div className="flex items-center justify-between"><span className="text-[var(--color-ink-muted)]">Pending</span><span className="font-semibold text-[var(--color-ink)]">{pendingSyncCount}</span></div>
+              <div className="flex items-center justify-between"><span className="text-[var(--color-ink-muted)]">Last sync</span><span className="font-semibold text-[var(--color-ink)]">{lastSyncedAt ? new Date(lastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</span></div>
+            </div>
+            <button type="button" onClick={() => void syncCloud()} disabled={!isOnline || syncStatus === 'syncing'} className="btn-primary mt-4 w-full">
+              <RefreshCw size={15} strokeWidth={2.25} />
+              {syncStatus === 'syncing' ? 'Syncing…' : 'Sync now'}
+            </button>
+          </div>
+        )}
+      </section>
 
+      <Modal open={supplierOpen} onClose={() => setSupplierOpen(false)} title="Add Supplier">
+        <form onSubmit={handleAddSupplier} className="space-y-4">
+          <label><span className="label">Supplier name</span><input autoFocus className="field" value={supplierName} onChange={(e) => setSupplierName(e.target.value)} placeholder="e.g. ABC Distributors" /></label>
+          <label><span className="label">Phone</span><input className="field" value={supplierPhone} onChange={(e) => setSupplierPhone(e.target.value)} placeholder="080…" /></label>
+          <label><span className="label">Email (optional)</span><input type="email" className="field" value={supplierEmail} onChange={(e) => setSupplierEmail(e.target.value)} placeholder="supplier@example.com" /></label>
+          <label><span className="label">Lead time (days)</span><input type="number" min="0" step="1" className="field" value={supplierLeadTime} onChange={(e) => setSupplierLeadTime(e.target.value)} placeholder="0" /></label>
+          {formError && <p className="text-sm font-medium text-[var(--color-red)]">{formError}</p>}
+          <button type="submit" className="btn-primary w-full">Add supplier</button>
+        </form>
+      </Modal>
 
-      <Modal open={supplierOpen} onClose={() => setSupplierOpen(false)} title="Add supplier"><form onSubmit={(e) => { e.preventDefault(); if (!supplier.name.trim()) return; addSupplier({ name: supplier.name.trim(), phone: supplier.phone.trim(), leadTimeDays: Math.max(0, Number(supplier.leadTimeDays) || 0) }); setSupplier({ name: '', phone: '', leadTimeDays: '2' }); setSupplierOpen(false); }} className="space-y-3"><label><span className="label">Supplier name</span><input className="field" value={supplier.name} onChange={(e) => setSupplier({ ...supplier, name: e.target.value })}/></label><label><span className="label">Phone</span><input className="field" value={supplier.phone} onChange={(e) => setSupplier({ ...supplier, phone: e.target.value })}/></label><label><span className="label">Lead time (days)</span><input type="number" min="0" className="field" value={supplier.leadTimeDays} onChange={(e) => setSupplier({ ...supplier, leadTimeDays: e.target.value })}/></label><button className="btn-primary w-full">Save supplier</button></form></Modal>
-      <Modal open={staffOpen} onClose={() => setStaffOpen(false)} title="Invite staff"><form onSubmit={(e) => void handleStaff(e)} className="space-y-3"><p className="text-xs text-[var(--color-ink-muted)]">The staff member must create or use a Firebase account with this exact email address.</p><label><span className="label">Staff name</span><input className="field" required value={staffForm.name} onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}/></label><label><span className="label">Email</span><input type="email" className="field" required value={staffForm.email} onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}/></label><button className="btn-primary w-full">Create invitation</button></form></Modal>
+      <Modal open={staffOpen} onClose={() => !saving && setStaffOpen(false)} title="Invite Staff">
+        <form onSubmit={handleInviteStaff} className="space-y-4">
+          <label><span className="label">Staff name</span><input autoFocus className="field" value={staffName} onChange={(e) => setStaffName(e.target.value)} placeholder="e.g. Ada Cashier" /></label>
+          <label><span className="label">Email address</span><input type="email" className="field" value={staffEmail} onChange={(e) => setStaffEmail(e.target.value)} placeholder="cashier@example.com" /></label>
+          {formError && <p className="text-sm font-medium text-[var(--color-red)]">{formError}</p>}
+          <button type="submit" disabled={saving} className="btn-primary w-full">{saving ? 'Inviting…' : 'Invite staff'}</button>
+        </form>
+      </Modal>
     </div>
   );
 }
-
-function Row({ label, value }: { label: string; value: string }) { return <div className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2.5"><span className="text-[var(--color-ink-muted)]">{label}</span><strong className="capitalize">{value}</strong></div>; }

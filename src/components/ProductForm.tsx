@@ -46,7 +46,7 @@ export default function ProductForm({ initial, onSubmit, submitLabel = 'Save Pro
     try {
       onSubmit({
         name: name.trim(), category, barcode: barcode.trim() || `LOCAL-${uid()}`,
-        sku: sku.trim() || undefined, costPrice: Number(costPrice), price: Number(price),
+        sku: sku.trim() || '', costPrice: Number(costPrice), price: Number(price),
         quantity: Number(quantity), minimumStock: Number(minimumStock), expiryDate: expiryDate || null,
         archived: false,
       });

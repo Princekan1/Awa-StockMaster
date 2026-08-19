@@ -24,6 +24,18 @@ export interface CloudSnapshot {
 const shopRef = (shopId: string) => doc(db, 'shops', shopId);
 const sub = (shopId: string, name: string) => collection(shopRef(shopId), name);
 
+function stripUndefined<T>(value: T): T {
+  if (Array.isArray(value)) return value.map((item) => stripUndefined(item)) as T;
+  if (value && typeof value === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+      if (item !== undefined) result[key] = stripUndefined(item);
+    }
+    return result as T;
+  }
+  return value;
+}
+
 async function readCollection<T>(shopId: string, name: string): Promise<T[]> {
   const snap = await getDocs(sub(shopId, name));
   return snap.docs.map((d) => d.data() as T);
@@ -67,14 +79,14 @@ export async function writeShopRecords(
     for (let i = 0; i < records.length; i += 450) {
       const batch = writeBatch(db);
       for (const record of records.slice(i, i + 450) as Array<{ id: string }>) {
-        batch.set(doc(sub(shopId, name), record.id), record, { merge: true });
+        batch.set(doc(sub(shopId, name), record.id), stripUndefined(record), { merge: true });
       }
       await batch.commit();
     }
   }
 
   if (includeManagement && data.settings) {
-    await setDoc(doc(db, 'shops', shopId, 'settings', 'main'), data.settings, { merge: true });
+    await setDoc(doc(db, 'shops', shopId, 'settings', 'main'), stripUndefined(data.settings), { merge: true });
   }
 }
 
@@ -101,7 +113,7 @@ export async function replaceShopData(shopId: string, data: CloudSnapshot): Prom
       for (const operation of operations.slice(i, i + 450)) {
         const ref = doc(sub(shopId, name), operation.kind === 'delete' ? operation.id : operation.record.id);
         if (operation.kind === 'delete') batch.delete(ref);
-        else batch.set(ref, operation.record, { merge: true });
+        else batch.set(ref, stripUndefined(operation.record), { merge: true });
       }
       await batch.commit();
     }
@@ -119,14 +131,14 @@ export async function replaceShopData(shopId: string, data: CloudSnapshot): Prom
   }
 
   if (data.settings) {
-    await setDoc(doc(db, 'shops', shopId, 'settings', 'main'), data.settings, { merge: true });
+    await setDoc(doc(db, 'shops', shopId, 'settings', 'main'), stripUndefined(data.settings), { merge: true });
   } else {
     await deleteDoc(doc(db, 'shops', shopId, 'settings', 'main'));
   }
 }
 
 export async function upsertRecord(shopId: string, collectionName: string, id: string, value: unknown) {
-  await setDoc(doc(sub(shopId, collectionName), id), value as Record<string, unknown>, { merge: true });
+  await setDoc(doc(sub(shopId, collectionName), id), stripUndefined(value) as Record<string, unknown>, { merge: true });
 }
 
 export async function deleteRecord(shopId: string, collectionName: string, id: string) {
@@ -134,7 +146,7 @@ export async function deleteRecord(shopId: string, collectionName: string, id: s
 }
 
 export async function upsertSettings(shopId: string, value: BusinessSettings) {
-  await setDoc(doc(db, 'shops', shopId, 'settings', 'main'), value, { merge: true });
+  await setDoc(doc(db, 'shops', shopId, 'settings', 'main'), stripUndefined(value), { merge: true });
 }
 
 export function subscribeShopData(
