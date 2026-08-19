@@ -35,8 +35,16 @@ function ProtectedLayout() {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-1 min-w-0 px-4 py-5 sm:px-6 sm:py-6 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-8 overflow-x-hidden">
-        <Routes>
+      <main
+        className="
+          flex-1 min-w-0 overflow-x-hidden
+          px-4 sm:px-6
+          pt-3 sm:pt-5
+          pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:pb-8
+        "
+      >
+                
+       <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/products/new" element={<OwnerOnly><ProductNew /></OwnerOnly>} />

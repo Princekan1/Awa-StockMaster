@@ -1,0 +1,10 @@
+/* Copy only this className onto your existing <main> in App.tsx */
+
+<main
+  className="
+    flex-1 min-w-0 overflow-x-hidden
+    px-4 sm:px-6
+    pt-2 sm:pt-5
+    pb-[calc(5.25rem+env(safe-area-inset-bottom))] md:pb-8
+  "
+>

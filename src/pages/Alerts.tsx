@@ -1,199 +1,243 @@
 import { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { AlertTriangle, Clock, PackageX, CheckCircle2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  Clock,
+  PackageX,
+  Package,
+  ChevronRight,
+} from 'lucide-react';
 import { useInventoryStore } from '../store/useInventoryStore';
-import { getStockStatus, getExpiryStatus, formatExpiryLabel, daysUntil } from '../lib/logic';
+import { getStockStatus, getExpiryStatus, formatNaira } from '../lib/logic';
 import Header from '../components/Header';
 import StatusBadge from '../components/StatusBadge';
-import EmptyState from '../components/EmptyState';
+import type { Product } from '../types';
+
+type AlertFilter = 'all' | 'out' | 'low' | 'expiring';
+
+function normalizeFilter(raw: string | null): AlertFilter {
+  if (raw === 'out' || raw === 'low' || raw === 'expiring') return raw;
+  return 'all';
+}
 
 export default function Alerts() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filter = normalizeFilter(searchParams.get('filter'));
+
   const products = useInventoryStore((s) => s.products);
   const expiryWarningDays = useInventoryStore((s) => s.settings?.expiryWarningDays ?? 30);
-  const [params] = useSearchParams();
-  const filter = params.get('filter'); // 'low' | 'expiring' | null
 
-  const outOfStock = useMemo(
-    () => products.filter((p) => !p.archived && getStockStatus(p) === 'OUT_OF_STOCK'),
-    [products],
-  );
-  const lowStock = useMemo(
-    () => products.filter((p) => !p.archived && getStockStatus(p) === 'LOW_STOCK'),
-    [products],
-  );
-  const expiring = useMemo(
-    () =>
-      products.filter((p) => !p.archived && ['EXPIRED', 'EXPIRING_SOON'].includes(getExpiryStatus(p.expiryDate, expiryWarningDays))),
-    [products, expiryWarningDays],
-  );
+  const { counts, list } = useMemo(() => {
+    const items: Array<{ product: Product; kind: 'OUT' | 'LOW' | 'EXPIRING' }> = [];
+    let out = 0;
+    let low = 0;
+    let expiring = 0;
 
-  const showLow = !filter || filter === 'low' || filter === 'out';
-  const showExpiring = !filter || filter === 'expiring';
+    for (const p of products) {
+      if (p.archived) continue;
+      const stock = getStockStatus(p);
+      const expiry = getExpiryStatus(p.expiryDate, expiryWarningDays);
 
-  const totalAlerts =
-    (showLow ? outOfStock.length + lowStock.length : 0) +
-    (showExpiring ? expiring.length : 0);
+      if (stock === 'OUT_OF_STOCK') {
+        out++;
+        items.push({ product: p, kind: 'OUT' });
+      } else if (stock === 'LOW_STOCK') {
+        low++;
+        items.push({ product: p, kind: 'LOW' });
+      } else if (expiry === 'EXPIRING_SOON' || expiry === 'EXPIRED') {
+        expiring++;
+        items.push({ product: p, kind: 'EXPIRING' });
+      }
+    }
+
+    items.sort((a, b) => {
+      const order = { OUT: 0, LOW: 1, EXPIRING: 2 };
+      if (order[a.kind] !== order[b.kind]) return order[a.kind] - order[b.kind];
+      return a.product.name.localeCompare(b.product.name);
+    });
+
+    const filtered =
+      filter === 'all'
+        ? items
+        : items.filter((i) => {
+            if (filter === 'out') return i.kind === 'OUT';
+            if (filter === 'low') return i.kind === 'LOW';
+            return i.kind === 'EXPIRING';
+          });
+
+    return {
+      counts: { all: items.length, out, low, expiring },
+      list: filtered,
+    };
+  }, [products, expiryWarningDays, filter]);
+
+  function setFilter(next: AlertFilter) {
+    if (next === 'all') setSearchParams({});
+    else setSearchParams({ filter: next });
+  }
 
   return (
     <div>
       <Header
-        title={
-          filter === 'low'
-            ? 'Low Stock Items'
-            : filter === 'expiring'
-              ? 'Expiring Soon'
-              : 'Alerts'
-        }
+        title="Alerts"
         subtitle={
-          totalAlerts === 0
-            ? 'Everything looks good'
-            : `${totalAlerts} item${totalAlerts === 1 ? '' : 's'} need attention`
+          counts.all === 0
+            ? 'No stock or expiry issues'
+            : `${counts.all} item${counts.all === 1 ? '' : 's'} need attention`
         }
       />
 
-      {totalAlerts === 0 && (
-        <EmptyState
-          icon={<CheckCircle2 size={28} strokeWidth={1.75} />}
-          title="No alerts right now"
-          description="You'll see stock and expiry warnings here."
-        />
-      )}
+      {/* Filter chips */}
+      <section className="page-section">
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+          <Chip
+            label="All"
+            count={counts.all}
+            active={filter === 'all'}
+            onClick={() => setFilter('all')}
+          />
+          <Chip
+            label="Out"
+            count={counts.out}
+            active={filter === 'out'}
+            tone="danger"
+            icon={<PackageX size={13} strokeWidth={2.5} />}
+            onClick={() => setFilter('out')}
+          />
+          <Chip
+            label="Low"
+            count={counts.low}
+            active={filter === 'low'}
+            tone="warn"
+            icon={<AlertTriangle size={13} strokeWidth={2.5} />}
+            onClick={() => setFilter('low')}
+          />
+          <Chip
+            label="Expiring"
+            count={counts.expiring}
+            active={filter === 'expiring'}
+            tone="warn"
+            icon={<Clock size={13} strokeWidth={2.5} />}
+            onClick={() => setFilter('expiring')}
+          />
+        </div>
+      </section>
 
-      {showLow && outOfStock.length > 0 && (
-        <AlertGroup
-          title="Out of Stock"
-          icon={<PackageX size={16} />}
-          tone="red"
-          count={outOfStock.length}
-        >
-          {outOfStock.map((p) => (
-            <AlertRow key={p.id} id={p.id} name={p.name} category={p.category}>
-              <StatusBadge status="OUT_OF_STOCK" />
-            </AlertRow>
-          ))}
-        </AlertGroup>
-      )}
-
-      {showLow && lowStock.length > 0 && (
-        <AlertGroup
-          title="Low Stock"
-          icon={<AlertTriangle size={16} />}
-          tone="amber"
-          count={lowStock.length}
-        >
-          {lowStock.map((p) => (
-            <AlertRow
-              key={p.id}
-              id={p.id}
-              name={p.name}
-              category={p.category}
-              meta={`${p.quantity} left · Min ${p.minimumStock}`}
-            >
-              <StatusBadge status="LOW_STOCK" />
-            </AlertRow>
-          ))}
-        </AlertGroup>
-      )}
-
-      {showExpiring && expiring.length > 0 && (
-        <AlertGroup
-          title="Expiring / Expired"
-          icon={<Clock size={16} />}
-          tone="amber"
-          count={expiring.length}
-        >
-          {expiring.map((p) => {
-            const days = p.expiryDate ? daysUntil(p.expiryDate) : null;
-            return (
-              <AlertRow
-                key={p.id}
-                id={p.id}
-                name={p.name}
-                category={p.category}
-                meta={formatExpiryLabel(p.expiryDate)}
+      {/* List */}
+      <section className="page-section">
+        {list.length === 0 ? (
+          <div
+            className="rounded-2xl border bg-white py-10 px-4 text-center shadow-sm"
+            style={{ borderColor: 'var(--color-line)' }}
+          >
+            <Package size={28} strokeWidth={1.5} className="mx-auto mb-2 text-[var(--color-ink-muted)]" />
+            <p className="text-sm font-semibold text-[var(--color-ink)]">
+              {filter === 'all' ? 'All clear' : 'Nothing in this filter'}
+            </p>
+            <p className="mt-1 text-xs text-[var(--color-ink-muted)]">
+              {filter === 'all'
+                ? 'No products are out, low, or expiring soon'
+                : 'Try another filter or check Products'}
+            </p>
+            {filter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setFilter('all')}
+                className="btn-secondary mt-3"
               >
-                <span
-                  className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                    days !== null && days < 0
-                      ? 'bg-red-50 text-red-600'
-                      : 'bg-amber-50 text-amber-700'
-                  }`}
-                >
-                  {days !== null ? `${days} days` : '—'}
-                </span>
-              </AlertRow>
-            );
-          })}
-        </AlertGroup>
-      )}
+                Show all alerts
+              </button>
+            )}
+          </div>
+        ) : (
+          <div
+            className="overflow-hidden rounded-2xl border bg-white shadow-sm"
+            style={{ borderColor: 'var(--color-line)' }}
+          >
+            {list.map(({ product, kind }) => (
+              <Link
+                key={`${product.id}-${kind}`}
+                to={`/products/${product.id}`}
+                className="flex items-center gap-3 border-b px-3.5 py-3 last:border-b-0 active:bg-slate-50"
+                style={{ borderColor: 'var(--color-line)' }}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-[var(--color-ink)]">
+                    {product.name}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[var(--color-ink-muted)]">
+                    {product.category} · Qty {product.quantity} · {formatNaira(product.price)}
+                    {kind === 'EXPIRING' && product.expiryDate
+                      ? ` · Exp ${new Date(product.expiryDate).toLocaleDateString()}`
+                      : ''}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {kind === 'OUT' && <StatusBadge status="OUT_OF_STOCK" />}
+                  {kind === 'LOW' && <StatusBadge status="LOW_STOCK" />}
+                  {kind === 'EXPIRING' && (
+                    <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[0.65rem] font-bold text-amber-700">
+                      Expiring
+                    </span>
+                  )}
+                  <ChevronRight size={16} className="text-[var(--color-ink-muted)]" strokeWidth={2} />
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
 
-function AlertGroup({
-  title,
-  icon,
-  tone,
+function Chip({
+  label,
   count,
-  children,
+  active,
+  tone,
+  icon,
+  onClick,
 }: {
-  title: string;
-  icon: React.ReactNode;
-  tone: 'red' | 'amber';
+  label: string;
   count: number;
-  children: React.ReactNode;
+  active: boolean;
+  tone?: 'warn' | 'danger';
+  icon?: React.ReactNode;
+  onClick: () => void;
 }) {
-  return (
-    <section className="ui-card overflow-hidden mb-4">
-      <div
-        className="flex items-center gap-2 px-4 py-3 border-b"
-        style={{ borderColor: 'var(--color-line)' }}
-      >
-        <span
-          className={`flex h-7 w-7 items-center justify-center rounded-md ${
-            tone === 'red' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
-          }`}
-        >
-          {icon}
-        </span>
-        <h2 className="font-display font-bold text-sm flex-1">{title}</h2>
-        <span className="text-xs font-semibold text-[var(--color-ink-muted)]">{count}</span>
-      </div>
-      <ul className="divide-y" style={{ borderColor: 'var(--color-line)' }}>
-        {children}
-      </ul>
-    </section>
-  );
-}
+  let activeCls =
+    'border-[var(--color-brand)] bg-[var(--color-brand-muted)] text-[var(--color-brand)]';
+  let countCls = 'bg-[var(--color-brand)] text-white';
 
-function AlertRow({
-  id,
-  name,
-  category,
-  meta,
-  children,
-}: {
-  id: string;
-  name: string;
-  category: string;
-  meta?: string;
-  children: React.ReactNode;
-}) {
+  if (active && tone === 'warn') {
+    activeCls = 'border-amber-400 bg-amber-50 text-amber-800';
+    countCls = 'bg-amber-600 text-white';
+  }
+  if (active && tone === 'danger') {
+    activeCls = 'border-red-300 bg-red-50 text-red-700';
+    countCls = 'bg-red-600 text-white';
+  }
+
   return (
-    <li>
-      <Link
-        to={`/products/${id}`}
-        className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50 transition"
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition ${
+        active
+          ? activeCls
+          : 'border-[var(--color-line)] bg-white text-[var(--color-ink-soft)]'
+      }`}
+    >
+      {icon}
+      {label}
+      <span
+        className={`inline-flex h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full px-1 text-[0.65rem] font-bold ${
+          active ? countCls : 'bg-slate-100 text-[var(--color-ink-muted)]'
+        }`}
       >
-        <div className="min-w-0">
-          <p className="font-medium text-sm truncate">{name}</p>
-          <p className="text-xs text-[var(--color-ink-muted)]">
-            {category}
-            {meta ? ` · ${meta}` : ''}
-          </p>
-        </div>
-        {children}
-      </Link>
-    </li>
+        {count}
+      </span>
+    </button>
   );
 }
